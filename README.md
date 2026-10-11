@@ -1,12 +1,14 @@
 # Late parcels, in Power BI: the Olist warehouse as a semantic model
 
-**A Power BI project on 100,000 real orders from Olist, a Brazilian online marketplace: a star-schema semantic model with 18 DAX measures and a two-page report on delivery and reviews. The whole project is written as code (a .pbip with TMDL and PBIR files), generated from one Python spec, and checked against Microsoft's JSON schemas on every push.**
+**A Power BI project on 100,000 real orders from Olist, a Brazilian online marketplace: a star-schema semantic model with 19 DAX measures and a two-page report on delivery and reviews. The whole project is written as code (a .pbip with TMDL and PBIR files), generated from one Python spec, and checked against Microsoft's JSON schemas on every push.**
 
 Track: Data Analytics · Power BI, DAX, Power Query (M), TMDL, PBIR, Python, GitHub Actions · [Live page](https://qaisbello.github.io/data-analytics/olist-powerbi/) · Data from [olist-dbt-warehouse](https://github.com/QaisBello/olist-dbt-warehouse)
 
-![The report, rebuilt for the web](docs/hero.png)
+![Page 1 in Power BI Desktop](docs/screenshots/page1-delivery-and-reviews.png)
 
-*The web version of the report on the live page. It uses the same layout and the same filter rules, with numbers from `tools/expected.py`.*
+![Page 2 in Power BI Desktop](docs/screenshots/page2-categories.png)
+
+*The report in Power BI Desktop after a refresh. Every figure matches `docs/expected_values.md`, the pandas reference implementation of the DAX: R$13,541,713 revenue, 99,092 orders, 6.8% late, and 4.29 against 2.27 stars.*
 
 ## What the report shows (January 2017 to August 2018)
 
@@ -35,7 +37,7 @@ Track: Data Analytics · Power BI, DAX, Power Query (M), TMDL, PBIR, Python, Git
 1. Install **Power BI Desktop** (Windows, free). If your version is older than mid-2025, turn on *File > Options > Preview features > Power BI Project (.pbip) save option*, *Store semantic model using TMDL format* and *Store reports using enhanced metadata format (PBIR)*. Newer versions have these on by default.
 2. Clone or download this repo and open **`Olist.pbip`**.
 3. Click **Refresh**. The model downloads the CSVs from the warehouse repo on GitHub (about 55 MB). If asked, choose **Anonymous** access for `raw.githubusercontent.com`.
-4. Check the cards against [`docs/expected_values.md`](docs/expected_values.md).
+4. Check the cards against [`docs/expected_values.md`](docs/expected_values.md). In testing, every card, the category table and the lateness chart matched to the last digit.
 
 To load the CSVs from your own copy of the data instead, change the **BaseUrl** parameter (*Transform data > Edit parameters*).
 
@@ -66,13 +68,13 @@ Products (1) ──► (*) Order Items (*) ◄── (1) Sellers
   - Adds a **Month** label sorted by date.
 - **Implicit measures are switched off**, so every number in the report comes from a named measure.
 
-## 18 DAX measures
+## 19 DAX measures
 
 | Folder | Measures |
 |---|---|
 | Sales | Order Count, Revenue, Freight, Avg Order Value, Customer Count, Revenue LY, Revenue YoY %, Revenue Running Total |
 | Delivery | Delivered Orders, Late Orders, % Late, Avg Delivery Days |
-| Reviews | Avg Review, Avg Review (On Time), Avg Review (Late), Review Gap, % One-Star |
+| Reviews | Avg Review, Avg Review (Delivered), Avg Review (On Time), Avg Review (Late), Review Gap, % One-Star |
 | Customers | Repeat Customer % |
 
 The full DAX for each measure is in [`docs/measures.md`](docs/measures.md).

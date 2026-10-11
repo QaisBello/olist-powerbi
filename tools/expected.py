@@ -81,7 +81,7 @@ def breakdowns(o):
     by_state_n = d.groupby("customer_state").size()
     by_month = o.groupby("month").size()
     return {
-        "lateness": [{"bucket": BUCKETS[i], "avg_review": round(r["mean"], 3), "orders": int(r["size"])} for i, r in by_late.iterrows()],
+        "lateness": [{"bucket": BUCKETS[i], "avg_review": round(r["mean"], 6), "orders": int(r["size"])} for i, r in by_late.iterrows()],
         "states": sorted([{"state": s, "pct_late": round(v, 4), "delivered": int(by_state_n[s])} for s, v in by_state.items()],
                          key=lambda x: -x["pct_late"]),
         "months": [{"month": m, "orders": int(v)} for m, v in by_month.items()],

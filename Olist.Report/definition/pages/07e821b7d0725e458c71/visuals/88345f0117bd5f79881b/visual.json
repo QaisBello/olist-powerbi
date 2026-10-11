@@ -42,11 +42,12 @@
                       "Entity": "Orders"
                     }
                   },
-                  "Property": "Avg Review"
+                  "Property": "Avg Review (Delivered)"
                 }
               },
-              "queryRef": "Orders.Avg Review",
-              "nativeQueryRef": "Avg Review"
+              "queryRef": "Orders.Avg Review (Delivered)",
+              "nativeQueryRef": "Avg Review (Delivered)",
+              "displayName": "Avg Review"
             }
           ]
         }

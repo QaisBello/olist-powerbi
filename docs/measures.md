@@ -13,7 +13,7 @@ COUNTROWS ( Orders )
 
 ## Revenue
 
-*Sales* · format `"R$"#,0` · Value of goods sold, excluding freight (Brazilian reais).
+*Sales* · format `R\$#,0` · Value of goods sold, excluding freight (Brazilian reais).
 
 ```dax
 Revenue =
@@ -22,7 +22,7 @@ SUM ( 'Order Items'[price] )
 
 ## Freight
 
-*Sales* · format `"R$"#,0` · Freight charged to customers.
+*Sales* · format `R\$#,0` · Freight charged to customers.
 
 ```dax
 Freight =
@@ -31,7 +31,7 @@ SUM ( 'Order Items'[freight_value] )
 
 ## Avg Order Value
 
-*Sales* · format `"R$"#,0.00` · Revenue per order.
+*Sales* · format `R\$#,0.00` · Revenue per order.
 
 ```dax
 Avg Order Value =
@@ -49,7 +49,7 @@ DISTINCTCOUNT ( Orders[customer_unique_id] )
 
 ## Revenue LY
 
-*Sales* · format `"R$"#,0` · Revenue in the same period a year earlier.
+*Sales* · format `R\$#,0` · Revenue in the same period a year earlier.
 
 ```dax
 Revenue LY =
@@ -69,7 +69,7 @@ RETURN
 
 ## Revenue Running Total
 
-*Sales* · format `"R$"#,0` · Cumulative revenue up to the latest date in context.
+*Sales* · format `R\$#,0` · Cumulative revenue up to the latest date in context.
 
 ```dax
 Revenue Running Total =
@@ -126,6 +126,15 @@ CALCULATE ( AVERAGE ( Orders[delivery_days] ), Orders[order_status] = "delivered
 ```dax
 Avg Review =
 AVERAGE ( Orders[review_score] )
+```
+
+## Avg Review (Delivered)
+
+*Reviews* · format `0.00` · Average review for delivered orders only. KEEPFILTERS keeps the chart's own Lateness filter, so the blank (not delivered) band returns BLANK and drops out.
+
+```dax
+Avg Review (Delivered) =
+CALCULATE ( [Avg Review], KEEPFILTERS ( NOT ISBLANK ( Orders[Lateness] ) ) )
 ```
 
 ## Avg Review (On Time)

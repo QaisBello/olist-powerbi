@@ -46,10 +46,10 @@ table Calendar
 		summarizeBy: none
 		sourceColumn: in_analysis_window
 
-	column Month
+	column 'Month Name'
 		dataType: string
 		summarizeBy: none
-		sourceColumn: Month
+		sourceColumn: Month Name
 		sortByColumn: month_start
 
 	partition Calendar = m
@@ -61,8 +61,10 @@ table Calendar
 				        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
 				    ),
 				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    // empty cells arrive as "" and would fail the type change (e.g. is_late for undelivered orders): make them null
+				    #"Blanks to Null" = Table.TransformColumns(#"Promoted Headers", {}, each if _ = "" then null else _),
 				    #"Changed Types" = Table.TransformColumnTypes(
-				        #"Promoted Headers",
+				        #"Blanks to Null",
 				        {
 				            {"date_day", type datetime},
 				            {"month_start", type datetime},
@@ -74,8 +76,8 @@ table Calendar
 				        },
 				        "en-US"
 				    ),
-				    #"Month" = Table.AddColumn(#"Changed Types", "Month", each Date.ToText(Date.From([month_start]), "MMM yyyy", "en-GB"), type text),
-				    Result = #"Month"
+				    #"Month Name" = Table.AddColumn(#"Changed Types", "Month Name", each Date.ToText(Date.From([month_start]), "MMM yyyy", "en-GB"), type text),
+				    Result = #"Month Name"
 				in
 				    Result
 				```

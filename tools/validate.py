@@ -78,7 +78,24 @@ def parse_model():
     return model
 
 
+def check_names(model):
+    """Power BI compares names case-insensitively: 'month' and 'Month' in one table is an error on load."""
+    seen = {}
+    for t, d in model.items():
+        names = [c.lower() for c in d["columns"]] + [m.lower() for m in d["measures"]]
+        for n in {x for x in names if names.count(x) > 1}:
+            problems.append(f"{t}: name '{n}' is used more than once (names are case-insensitive)")
+        for m in d["measures"]:
+            if m.lower() in seen:
+                problems.append(f"measure {m} on {t} clashes with {seen[m.lower()]}")
+            seen[m.lower()] = f"measure on {t}"
+    for m, where in seen.items():
+        if m in {t.lower() for t in model}:
+            problems.append(f"measure {m} has the same name as a table")
+
+
 def check_model(model):
+    check_names(model)
     all_measures = {m: t for t, d in model.items() for m in d["measures"]}
     for t, d in model.items():
         for s in d["sorts"]:

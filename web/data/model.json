@@ -413,7 +413,7 @@
      "key": false
     },
     {
-     "name": "Month",
+     "name": "Month Name",
      "type": "string",
      "hidden": false,
      "key": false
@@ -469,21 +469,21 @@
   {
    "name": "Revenue",
    "folder": "Sales",
-   "format": "\"R$\"#,0",
+   "format": "R\\$#,0",
    "dax": "SUM ( 'Order Items'[price] )",
    "description": "Value of goods sold, excluding freight (Brazilian reais)."
   },
   {
    "name": "Freight",
    "folder": "Sales",
-   "format": "\"R$\"#,0",
+   "format": "R\\$#,0",
    "dax": "SUM ( 'Order Items'[freight_value] )",
    "description": "Freight charged to customers."
   },
   {
    "name": "Avg Order Value",
    "folder": "Sales",
-   "format": "\"R$\"#,0.00",
+   "format": "R\\$#,0.00",
    "dax": "DIVIDE ( [Revenue], [Order Count] )",
    "description": "Revenue per order."
   },
@@ -497,7 +497,7 @@
   {
    "name": "Revenue LY",
    "folder": "Sales",
-   "format": "\"R$\"#,0",
+   "format": "R\\$#,0",
    "dax": "CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( 'Calendar'[date_day] ) )",
    "description": "Revenue in the same period a year earlier."
   },
@@ -511,7 +511,7 @@
   {
    "name": "Revenue Running Total",
    "folder": "Sales",
-   "format": "\"R$\"#,0",
+   "format": "R\\$#,0",
    "dax": "CALCULATE (\n    [Revenue],\n    FILTER ( ALL ( 'Calendar'[date_day] ), 'Calendar'[date_day] <= MAX ( 'Calendar'[date_day] ) )\n)",
    "description": "Cumulative revenue up to the latest date in context."
   },
@@ -549,6 +549,13 @@
    "format": "0.00",
    "dax": "AVERAGE ( Orders[review_score] )",
    "description": "Average review score, 1 to 5."
+  },
+  {
+   "name": "Avg Review (Delivered)",
+   "folder": "Reviews",
+   "format": "0.00",
+   "dax": "CALCULATE ( [Avg Review], KEEPFILTERS ( NOT ISBLANK ( Orders[Lateness] ) ) )",
+   "description": "Average review for delivered orders only. KEEPFILTERS keeps the chart's own Lateness filter, so the blank (not delivered) band returns BLANK and drops out."
   },
   {
    "name": "Avg Review (On Time)",

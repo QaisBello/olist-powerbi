@@ -79,25 +79,25 @@ TABLES = {
         columns=[("date_day", "dateTime", {"isKey": True, "formatString": "Short Date"}), ("month_start", "dateTime", {"formatString": "mmm yyyy"}),
                  ("year", "int64", {}), ("month", "int64", {"isHidden": True}), ("day_of_week", "int64", {"isHidden": True}),
                  ("is_weekend", "boolean", {}), ("in_analysis_window", "boolean", {"isHidden": True})],
-        added=[("Month", "string", {"sortByColumn": "month_start"})],
+        added=[("Month Name", "string", {"sortByColumn": "month_start"})],
         m_extra='''
-            #"Month" = Table.AddColumn(#"Changed Types", "Month", each Date.ToText(Date.From([month_start]), "MMM yyyy", "en-GB"), type text)
-        ''', m_last="Month"),
+            #"Month Name" = Table.AddColumn(#"Changed Types", "Month Name", each Date.ToText(Date.From([month_start]), "MMM yyyy", "en-GB"), type text)
+        ''', m_last="Month Name"),
 }
 
 # measures: (name, folder, format, DAX, description)
 MEASURES = [
     ("Order Count", "Sales", "#,0", "COUNTROWS ( Orders )", "Orders placed."),
-    ("Revenue", "Sales", '"R$"#,0', "SUM ( 'Order Items'[price] )", "Value of goods sold, excluding freight (Brazilian reais)."),
-    ("Freight", "Sales", '"R$"#,0', "SUM ( 'Order Items'[freight_value] )", "Freight charged to customers."),
-    ("Avg Order Value", "Sales", '"R$"#,0.00', "DIVIDE ( [Revenue], [Order Count] )", "Revenue per order."),
+    ("Revenue", "Sales", r'R\$#,0', "SUM ( 'Order Items'[price] )", "Value of goods sold, excluding freight (Brazilian reais)."),
+    ("Freight", "Sales", r'R\$#,0', "SUM ( 'Order Items'[freight_value] )", "Freight charged to customers."),
+    ("Avg Order Value", "Sales", r'R\$#,0.00', "DIVIDE ( [Revenue], [Order Count] )", "Revenue per order."),
     ("Customer Count", "Sales", "#,0", "DISTINCTCOUNT ( Orders[customer_unique_id] )", "Distinct people who ordered."),
-    ("Revenue LY", "Sales", '"R$"#,0', "CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( 'Calendar'[date_day] ) )", "Revenue in the same period a year earlier."),
+    ("Revenue LY", "Sales", r'R\$#,0', "CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( 'Calendar'[date_day] ) )", "Revenue in the same period a year earlier."),
     ("Revenue YoY %", "Sales", "0.0%;-0.0%;0.0%", """
 VAR _ly = [Revenue LY]
 RETURN
     IF ( NOT ISBLANK ( _ly ), DIVIDE ( [Revenue] - _ly, _ly ) )""", "Change in revenue against the same period a year earlier."),
-    ("Revenue Running Total", "Sales", '"R$"#,0', """
+    ("Revenue Running Total", "Sales", r'R\$#,0', """
 CALCULATE (
     [Revenue],
     FILTER ( ALL ( 'Calendar'[date_day] ), 'Calendar'[date_day] <= MAX ( 'Calendar'[date_day] ) )
@@ -112,6 +112,8 @@ CALCULATE (
     ("% Late", "Delivery", "0.0%", "DIVIDE ( [Late Orders], [Delivered Orders] )", "Share of delivered orders that arrived late."),
     ("Avg Delivery Days", "Delivery", "0.0", "CALCULATE ( AVERAGE ( Orders[delivery_days] ), Orders[order_status] = \"delivered\" )", "Days from purchase to delivery."),
     ("Avg Review", "Reviews", "0.00", "AVERAGE ( Orders[review_score] )", "Average review score, 1 to 5."),
+    ("Avg Review (Delivered)", "Reviews", "0.00", "CALCULATE ( [Avg Review], KEEPFILTERS ( NOT ISBLANK ( Orders[Lateness] ) ) )",
+     "Average review for delivered orders only. KEEPFILTERS keeps the chart's own Lateness filter, so the blank (not delivered) band returns BLANK and drops out."),
     ("Avg Review (On Time)", "Reviews", "0.00", "CALCULATE ( [Avg Review], Orders[is_late] == FALSE () )", "Average review for orders delivered on or before the promised date."),
     ("Avg Review (Late)", "Reviews", "0.00", "CALCULATE ( [Avg Review], Orders[is_late] == TRUE () )", "Average review for orders delivered late."),
     ("Review Gap", "Reviews", "0.00", "[Avg Review (On Time)] - [Avg Review (Late)]", "How many stars a late delivery costs."),
@@ -192,8 +194,10 @@ def table_tmdl(name, t):
         [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
     ),
     #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+    // empty cells arrive as "" and would fail the type change (e.g. is_late for undelivered orders): make them null
+    #"Blanks to Null" = Table.TransformColumns(#"Promoted Headers", {{}}, each if _ = "" then null else _),
     #"Changed Types" = Table.TransformColumnTypes(
-        #"Promoted Headers",
+        #"Blanks to Null",
         {{
 {textwrap.indent(types, " " * 12)}
         }},
@@ -303,7 +307,7 @@ def fill(color):
 
 def card(page, key, x, measure, label):
     return visual(page, key, "card", x, 76, 236, 104, {"Values": [M(measure, label)]}, objects={
-        "labels": [{"properties": {"fontSize": lit(26), "color": {"solid": {"color": lit(INK)}}}}],
+        "labels": [{"properties": {"fontSize": lit(26), "labelDisplayUnits": lit(1), "color": {"solid": {"color": lit(INK)}}}}],
         "categoryLabels": [{"properties": {"show": lit(True), "fontSize": lit(11)}}]}, z=x)
 
 
@@ -325,7 +329,7 @@ def pages():
         card(p1, "ontime", 768, "Avg Review (On Time)", "Review if on time"),
         card(p1, "latereview", 1016, "Avg Review (Late)", "Review if late"),
         visual(p1, "lateness", "clusteredColumnChart", 24, 196, 612, 300,
-               {"Category": [C("Orders", "Lateness", "Delivery against promised date")], "Y": [M("Avg Review")]},
+               {"Category": [C("Orders", "Lateness", "Delivery against promised date")], "Y": [M("Avg Review (Delivered)", "Avg Review")]},
                "Average review by how late the parcel arrived", objects={**fill(WARN), "labels": [{"properties": {"show": lit(True)}}]},
                sort=(C("Orders", "Lateness"), "Ascending"), z=10),
         visual(p1, "states", "clusteredBarChart", 652, 196, 604, 300,

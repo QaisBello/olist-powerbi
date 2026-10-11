@@ -11,7 +11,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
 /* Layout: the report first (both Power BI pages, rebuilt for the web with the category slicer working), then the
-   semantic model behind it: star schema, the 18 DAX measures, and how the .pbip is generated and validated as code. */
+   semantic model behind it: star schema, the 19 DAX measures, and how the .pbip is generated and validated as code. */
 :root{
   --paper:#f5f6f4; --card:#fcfcfb; --ink:#13201b; --ink-2:#47554f; --muted:#7c8781; --rule:#e0e4e1; --axis:#c6ccc8;
   --accent:#0f766e; --warn:#c2410c; --ctx:#b6beb9; --ok:#16845f; --band:rgba(15,118,110,.07);
@@ -95,6 +95,7 @@ footer a{color:var(--ink-2)}
   .kpi{border-bottom:1px solid var(--rule)}
   .tests{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+.shot{width:100%;height:auto;border:1px solid var(--rule);border-radius:12px;background:#fff}
 .canvas{background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
 .tabs{display:flex;align-items:center;gap:4px;padding:8px 10px 0;border-bottom:1px solid var(--rule);background:var(--paper);flex-wrap:wrap}
 .tabs button{all:unset;cursor:pointer;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px 10px 0 0;color:var(--ink-2);border:1px solid transparent;border-bottom:0;margin-bottom:-1px}
@@ -152,7 +153,7 @@ pre.dax{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.5;backgr
     <div>
       <div class="eyebrow">Data Analytics · Power BI · DAX · Brazilian e-commerce, 2017-18</div>
       <h1>Late parcels,<br><span>in Power BI</span></h1>
-      <p class="lede">The Olist warehouse, modelled in <b>Power BI</b>: a star-schema semantic model with <b>18 DAX measures</b> and a two-page report on delivery and reviews. The whole project is <b>written as code</b> (a .pbip with TMDL and PBIR files), generated from one script and checked against Microsoft's schemas on every push.</p>
+      <p class="lede">The Olist warehouse, modelled in <b>Power BI</b>: a star-schema semantic model with <b>19 DAX measures</b> and a two-page report on delivery and reviews. The whole project is <b>written as code</b> (a .pbip with TMDL and PBIR files), generated from one script and checked against Microsoft's schemas on every push.</p>
       <div class="src" id="src"><span class="dot"></span>Loading…</div>
     </div>
     <aside class="card stack">
@@ -192,12 +193,17 @@ pre.dax{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.5;backgr
   </section>
 
   <section class="panel">
+    <div><h2>In Power BI Desktop</h2><p class="sub">The same report after a refresh in Power BI Desktop. The cards and the category table match the pandas reference to the last digit: <b>R$13,541,713</b>, <b>99,092</b> orders, <b>6.8%</b> late, <b>4.29</b> against <b>2.27</b> stars.</p></div>
+    <div class="grid2"><img class="shot" src="https://raw.githubusercontent.com/QaisBello/olist-powerbi/main/docs/screenshots/page1-delivery-and-reviews.png" alt="Power BI page 1: delivery and reviews" loading="lazy"><img class="shot" src="https://raw.githubusercontent.com/QaisBello/olist-powerbi/main/docs/screenshots/page2-categories.png" alt="Power BI page 2: categories" loading="lazy"></div>
+  </section>
+
+  <section class="panel">
     <div><h2>The semantic model</h2><p class="sub">A star schema: <b>Orders</b> and <b>Order Items</b> are the facts; Calendar, Customers, Products and Sellers are dimensions. Lines run from the one side (<b>1</b>) to the many side (<b>*</b>); the arrow is the filter direction. Order Items filters Orders both ways, so a product slicer can reach order-level measures. Hidden columns are in grey italics.</p></div>
     <div class="model"><svg id="model" viewBox="0 0 1080 520" role="img" aria-label="Semantic model diagram"></svg></div>
   </section>
 
   <section class="panel">
-    <div><h2>18 DAX measures</h2><p class="sub">All on the Orders table, in display folders. Implicit measures are switched off, so every number in the report comes from one of these.</p></div>
+    <div><h2>19 DAX measures</h2><p class="sub">All on the Orders table, in display folders. Implicit measures are switched off, so every number in the report comes from one of these.</p></div>
     <div class="seg" id="folders" role="group" aria-label="Display folder"></div>
     <div class="measures" id="measures"></div>
   </section>

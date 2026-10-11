@@ -20,14 +20,14 @@ After the first refresh in Power BI Desktop, the cards and visuals should show t
 
 | Lateness | Avg Review | Orders |
 |---|---:|---:|
-| 15+ days early | 4.33 | 34,693 |
+| 15+ days early | 4.32 | 34,693 |
 | 8-14 days early | 4.31 | 36,353 |
 | 1-7 days early | 4.20 | 17,335 |
 | On the day | 4.03 | 1,291 |
 | 1-3 days late | 3.29 | 1,869 |
 | 4-7 days late | 2.10 | 1,802 |
 | 8-14 days late | 1.67 | 1,479 |
-| 15+ days late | 1.73 | 1,382 |
+| 15+ days late | 1.72 | 1,382 |
 
 ## Top 5 categories by revenue (table)
 
