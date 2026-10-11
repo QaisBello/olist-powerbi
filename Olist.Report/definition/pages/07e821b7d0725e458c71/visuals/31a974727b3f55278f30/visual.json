@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
   "name": "31a974727b3f55278f30",
   "position": {
-    "x": 940,
-    "y": 512,
+    "x": 935.85219182900892,
+    "y": 524.18700480745076,
     "z": 13,
-    "width": 316,
     "height": 196,
+    "width": 316,
     "tabOrder": 13
   },
   "visual": {
@@ -28,13 +28,13 @@
               },
               "queryRef": "Products.category",
               "nativeQueryRef": "category",
+              "active": true,
               "displayName": "Product category"
             }
           ]
         }
       }
     },
-    "drillFilterOtherVisuals": true,
     "objects": {
       "data": [
         {
@@ -47,6 +47,11 @@
               }
             }
           }
+        }
+      ],
+      "general": [
+        {
+          "properties": {}
         }
       ]
     },
@@ -78,6 +83,25 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "58ed3bd38c4cca826ca1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Products"
+              }
+            },
+            "Property": "category"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
   }
 }

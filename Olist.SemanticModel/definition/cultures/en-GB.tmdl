@@ -245,6 +245,27 @@ cultureInfo en-GB
 			          }
 			        }
 			      ]
+			    },
+			    "orders.avg_review_delivered": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "Orders",
+			          "ConceptualProperty": "Avg Review (Delivered)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Avg Review": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    }
 			  }
 			}

@@ -18,3 +18,4 @@ relationship 7a4bac74-d5b6-5b85-a786-af75792abc30
 relationship 62033ba8-4bda-5577-b393-4e196d143068
 	fromColumn: 'Order Items'.seller_id
 	toColumn: Sellers.seller_id
+

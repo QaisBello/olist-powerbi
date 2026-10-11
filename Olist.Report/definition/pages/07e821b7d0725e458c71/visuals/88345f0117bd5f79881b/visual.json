@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
   "name": "88345f0117bd5f79881b",
   "position": {
     "x": 24,
     "y": 196,
     "z": 10,
-    "width": 612,
     "height": 300,
+    "width": 612,
     "tabOrder": 10
   },
   "visual": {
@@ -28,6 +28,7 @@
               },
               "queryRef": "Orders.Lateness",
               "nativeQueryRef": "Lateness",
+              "active": true,
               "displayName": "Delivery against promised date"
             }
           ]
@@ -67,11 +68,9 @@
             },
             "direction": "Ascending"
           }
-        ],
-        "isDefaultSort": false
+        ]
       }
     },
-    "drillFilterOtherVisuals": true,
     "objects": {
       "dataPoint": [
         {
@@ -132,6 +131,7 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
   }
 }

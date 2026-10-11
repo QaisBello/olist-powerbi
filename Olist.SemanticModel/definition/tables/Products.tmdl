@@ -1,44 +1,51 @@
 /// Products with English category names.
 table Products
+	lineageTag: b68c602b-307d-4a1d-a27a-8c59aec02525
 
 	column product_id
 		dataType: string
 		isKey
+		lineageTag: 131d2ceb-41ad-476f-9d99-a2c9d6793837
 		summarizeBy: none
 		sourceColumn: product_id
 
 	column category
 		dataType: string
+		lineageTag: 54dc16fd-cbb1-458e-9ecf-690f0a5859ac
 		summarizeBy: none
 		sourceColumn: category
 
 	column category_pt
 		dataType: string
 		isHidden
+		lineageTag: 33c2bf70-5a7b-40ad-897b-310944b427bf
 		summarizeBy: none
 		sourceColumn: category_pt
 
 	column weight_g
 		dataType: int64
 		formatString: 0
+		lineageTag: 1d4ff40a-d0dc-4fac-883f-34ea98695e5d
 		summarizeBy: none
 		sourceColumn: weight_g
 
 	column photos
 		dataType: int64
 		formatString: 0
+		lineageTag: ae6334fc-ed6f-4507-8ad1-fecfefdf9c89
 		summarizeBy: none
 		sourceColumn: photos
 
 	column volume_cm3
 		dataType: int64
 		formatString: 0
+		lineageTag: e919b8a9-2395-432d-aec7-f922ff0437ad
 		summarizeBy: none
 		sourceColumn: volume_cm3
 
 	partition Products = m
 		mode: import
-		source = ```
+		source =
 				let
 				    Source = Csv.Document(
 				        Web.Contents(BaseUrl, [RelativePath = "dim_products.csv"]),
@@ -63,5 +70,4 @@ table Products
 				    Result = #"Filtered Rows"
 				in
 				    Result
-				```
 

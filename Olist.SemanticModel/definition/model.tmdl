@@ -7,9 +7,16 @@ model Model
 		legacyRedirects
 		returnErrorValuesAsNull
 
+annotation PBI_QueryOrder = ["Orders","Order Items","Customers","Products","Sellers","Calendar","BaseUrl"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
 ref table Orders
 ref table 'Order Items'
 ref table Customers
 ref table Products
 ref table Sellers
 ref table Calendar
+
+ref cultureInfo en-GB
+

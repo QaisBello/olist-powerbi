@@ -1,2 +1,6 @@
 /// Folder of CSVs exported by the dbt warehouse (github.com/QaisBello/olist-dbt-warehouse). Point it at a local folder or another branch to test.
 expression BaseUrl = "https://raw.githubusercontent.com/QaisBello/olist-dbt-warehouse/main/data/clean/" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 1a0283f4-b2c2-4060-90ad-9e532e279d17
+
+	annotation PBI_ResultType = Text
+

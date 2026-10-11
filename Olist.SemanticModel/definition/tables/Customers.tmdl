@@ -1,48 +1,56 @@
 /// One row per person (customer_unique_id), not per order.
 table Customers
+	lineageTag: cfa238a7-cd7f-4aa3-8c1c-9b19b38b3da8
 
 	column customer_unique_id
 		dataType: string
 		isKey
+		lineageTag: f85025da-9439-4447-b686-0702c758ba59
 		summarizeBy: none
 		sourceColumn: customer_unique_id
 
 	column state
 		dataType: string
+		lineageTag: 084695e0-6ba6-4798-9a32-0e3e014a9218
 		summarizeBy: none
 		sourceColumn: state
 
 	column city
 		dataType: string
+		lineageTag: 93bbb616-0373-482f-a387-ef1bba23c55e
 		summarizeBy: none
 		sourceColumn: city
 
 	column first_order_at
 		dataType: dateTime
 		formatString: General Date
+		lineageTag: 5891d8c1-1cd5-483c-861a-93f7b9b192e6
 		summarizeBy: none
 		sourceColumn: first_order_at
 
 	column last_order_at
 		dataType: dateTime
 		formatString: General Date
+		lineageTag: d42a61a1-996d-479d-b384-340010976e12
 		summarizeBy: none
 		sourceColumn: last_order_at
 
 	column orders
 		dataType: int64
 		formatString: 0
+		lineageTag: 3750a525-a564-4860-9fee-1c27e7a42d59
 		summarizeBy: none
 		sourceColumn: orders
 
 	column is_repeat_customer
 		dataType: boolean
+		lineageTag: d891badb-2c2e-4374-a037-5f435b3bc433
 		summarizeBy: none
 		sourceColumn: is_repeat_customer
 
 	partition Customers = m
 		mode: import
-		source = ```
+		source =
 				let
 				    Source = Csv.Document(
 				        Web.Contents(BaseUrl, [RelativePath = "dim_customers.csv"]),
@@ -68,5 +76,4 @@ table Customers
 				    Result = #"Filtered Rows"
 				in
 				    Result
-				```
 

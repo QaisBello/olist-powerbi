@@ -1,35 +1,42 @@
 /// One row per order (dbt model fct_orders), January 2017 to August 2018.
 table Orders
+	lineageTag: 894f0a88-dc9a-4720-af33-8bf4d0c15080
 
 	/// Orders placed.
 	measure 'Order Count' = COUNTROWS ( Orders )
 		formatString: #,0
 		displayFolder: Sales
+		lineageTag: 1ea39d6f-8282-4ecd-aeda-8b87d5f68fbd
 
 	/// Value of goods sold, excluding freight (Brazilian reais).
 	measure Revenue = SUM ( 'Order Items'[price] )
 		formatString: R\$#,0
 		displayFolder: Sales
+		lineageTag: f3b321f2-5576-48d8-8614-6e99beec2711
 
 	/// Freight charged to customers.
 	measure Freight = SUM ( 'Order Items'[freight_value] )
 		formatString: R\$#,0
 		displayFolder: Sales
+		lineageTag: a9b18140-c2a3-4af7-9dad-57d3c5776cd6
 
 	/// Revenue per order.
 	measure 'Avg Order Value' = DIVIDE ( [Revenue], [Order Count] )
 		formatString: R\$#,0.00
 		displayFolder: Sales
+		lineageTag: 26407996-1f70-4f81-9b82-7f1e12870b80
 
 	/// Distinct people who ordered.
 	measure 'Customer Count' = DISTINCTCOUNT ( Orders[customer_unique_id] )
 		formatString: #,0
 		displayFolder: Sales
+		lineageTag: 677d401a-73c8-4b6f-bf16-d7722db20d81
 
 	/// Revenue in the same period a year earlier.
 	measure 'Revenue LY' = CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( 'Calendar'[date_day] ) )
 		formatString: R\$#,0
 		displayFolder: Sales
+		lineageTag: ec054d99-c0bd-4161-9a34-b784db0c32c6
 
 	/// Change in revenue against the same period a year earlier.
 	measure 'Revenue YoY %' =
@@ -38,6 +45,7 @@ table Orders
 			    IF ( NOT ISBLANK ( _ly ), DIVIDE ( [Revenue] - _ly, _ly ) )
 		formatString: 0.0%;-0.0%;0.0%
 		displayFolder: Sales
+		lineageTag: 33b159ec-e04d-4441-b47a-f9b9847c63b5
 
 	/// Cumulative revenue up to the latest date in context.
 	measure 'Revenue Running Total' =
@@ -47,6 +55,7 @@ table Orders
 			)
 		formatString: R\$#,0
 		displayFolder: Sales
+		lineageTag: 3885846a-ae30-416a-9a41-b92968779b66
 
 	/// Orders delivered, with a delivery date recorded.
 	measure 'Delivered Orders' =
@@ -57,46 +66,49 @@ table Orders
 			)
 		formatString: #,0
 		displayFolder: Delivery
+		lineageTag: 3803d4c1-20d0-4489-90b4-85c26519ac24
 
 	/// Delivered after the date promised at checkout.
 	measure 'Late Orders' = CALCULATE ( [Delivered Orders], Orders[is_late] == TRUE () )
 		formatString: #,0
 		displayFolder: Delivery
+		lineageTag: 1ee97c82-9ca3-4d5d-8070-566ad36660f4
 
 	/// Share of delivered orders that arrived late.
 	measure '% Late' = DIVIDE ( [Late Orders], [Delivered Orders] )
 		formatString: 0.0%
 		displayFolder: Delivery
+		lineageTag: 8e2f538e-8e55-4b09-979b-f254115f1018
 
 	/// Days from purchase to delivery.
 	measure 'Avg Delivery Days' = CALCULATE ( AVERAGE ( Orders[delivery_days] ), Orders[order_status] = "delivered" )
 		formatString: 0.0
 		displayFolder: Delivery
+		lineageTag: c9d3d984-c710-421d-830c-378c4112f566
 
 	/// Average review score, 1 to 5.
 	measure 'Avg Review' = AVERAGE ( Orders[review_score] )
 		formatString: 0.00
 		displayFolder: Reviews
-
-	/// Average review for delivered orders only. KEEPFILTERS keeps the chart's own Lateness filter, so the blank (not delivered) band returns BLANK and drops out.
-	measure 'Avg Review (Delivered)' = CALCULATE ( [Avg Review], KEEPFILTERS ( NOT ISBLANK ( Orders[Lateness] ) ) )
-		formatString: 0.00
-		displayFolder: Reviews
+		lineageTag: e117b309-2fe6-4840-b25e-6702b03f2f1d
 
 	/// Average review for orders delivered on or before the promised date.
 	measure 'Avg Review (On Time)' = CALCULATE ( [Avg Review], Orders[is_late] == FALSE () )
 		formatString: 0.00
 		displayFolder: Reviews
+		lineageTag: 1ce53e71-7615-411f-9bbd-c95701bfb93c
 
 	/// Average review for orders delivered late.
 	measure 'Avg Review (Late)' = CALCULATE ( [Avg Review], Orders[is_late] == TRUE () )
 		formatString: 0.00
 		displayFolder: Reviews
+		lineageTag: 8032d3fd-8f67-438d-b8eb-c7aa70be5cbe
 
 	/// How many stars a late delivery costs.
 	measure 'Review Gap' = [Avg Review (On Time)] - [Avg Review (Late)]
 		formatString: 0.00
 		displayFolder: Reviews
+		lineageTag: c72789fc-7904-4639-9997-75ec31e7f3ab
 
 	/// Share of reviewed orders rated one star.
 	measure '% One-Star' =
@@ -106,6 +118,7 @@ table Orders
 			)
 		formatString: 0.0%
 		displayFolder: Reviews
+		lineageTag: 50c2c34e-6c3d-4940-9e4f-d9894bdee7fc
 
 	/// Share of customers who ordered more than once.
 	measure 'Repeat Customer %' =
@@ -115,31 +128,43 @@ table Orders
 			)
 		formatString: 0.0%
 		displayFolder: Customers
+		lineageTag: 56178f64-bae8-4691-a91f-d05d3e768e70
+
+	/// Average review for delivered orders only. KEEPFILTERS keeps the chart's own Lateness filter, so the blank (not delivered) band returns BLANK and drops out.
+	measure 'Avg Review (Delivered)' = CALCULATE ( [Avg Review], KEEPFILTERS ( NOT ISBLANK ( Orders[Lateness] ) ) )
+		formatString: 0.00
+		displayFolder: Reviews
+		lineageTag: 8d6f442c-2163-4e45-a3e0-3dd0ef5fa589
 
 	column order_id
 		dataType: string
+		lineageTag: 121a5880-7bb9-4a18-9ffa-79292fa24c53
 		summarizeBy: none
 		sourceColumn: order_id
 
 	column customer_unique_id
 		dataType: string
 		isHidden
+		lineageTag: a5968965-f38b-4170-9369-fc3861ca0e52
 		summarizeBy: none
 		sourceColumn: customer_unique_id
 
 	column customer_state
 		dataType: string
+		lineageTag: 68a21a90-0fbc-4997-b554-1e99ff314146
 		summarizeBy: none
 		sourceColumn: customer_state
 
 	column order_status
 		dataType: string
+		lineageTag: 1bcb469f-2377-4464-bde0-d51cc9774a4d
 		summarizeBy: none
 		sourceColumn: order_status
 
 	column purchased_at
 		dataType: dateTime
 		formatString: General Date
+		lineageTag: 94c9a0f0-ae3d-45dc-867a-8e4fdaa38f45
 		summarizeBy: none
 		sourceColumn: purchased_at
 
@@ -147,114 +172,134 @@ table Orders
 		dataType: dateTime
 		isHidden
 		formatString: Short Date
+		lineageTag: e11daa2b-e370-4e4c-88b6-8bc6a6d7ad3c
 		summarizeBy: none
 		sourceColumn: purchase_date
 
 	column items
 		dataType: int64
 		formatString: 0
+		lineageTag: 830c2377-5faa-4279-ad75-bc49f519a7d2
 		summarizeBy: none
 		sourceColumn: items
 
 	column sellers
 		dataType: int64
 		formatString: 0
+		lineageTag: bd28363c-17b2-4eb9-9a6d-6ea04375024d
 		summarizeBy: none
 		sourceColumn: sellers
 
 	column items_value
 		dataType: decimal
 		formatString: #,0.00
+		lineageTag: cb0347b0-5c85-4860-b8c3-9e053ede1eab
 		summarizeBy: none
 		sourceColumn: items_value
 
 	column freight_value
 		dataType: decimal
 		formatString: #,0.00
+		lineageTag: 1797462d-8301-47a6-b015-817530389889
 		summarizeBy: none
 		sourceColumn: freight_value
 
 	column order_value
 		dataType: decimal
 		formatString: #,0.00
+		lineageTag: 3bb3da7a-0d66-4bed-b437-240842901a7f
 		summarizeBy: none
 		sourceColumn: order_value
 
 	column payment_value
 		dataType: decimal
 		formatString: #,0.00
+		lineageTag: 878b9ed7-d94a-43bb-bde5-384df429ea1e
 		summarizeBy: none
 		sourceColumn: payment_value
 
 	column payment_type
 		dataType: string
+		lineageTag: 77ed4b46-70d1-4a5a-82d1-7201fa6e6432
 		summarizeBy: none
 		sourceColumn: payment_type
 
 	column installments
 		dataType: int64
 		formatString: 0
+		lineageTag: ce21a0f3-6a3a-42ce-adea-4f104f9d1391
 		summarizeBy: none
 		sourceColumn: installments
 
 	column used_voucher
 		dataType: boolean
+		lineageTag: e6cc7af1-2bba-4a63-8cd1-fe9d9cd31319
 		summarizeBy: none
 		sourceColumn: used_voucher
 
 	column payment_mismatch
 		dataType: boolean
+		lineageTag: 176c720f-ca4a-4583-b10c-f13d77b8261b
 		summarizeBy: none
 		sourceColumn: payment_mismatch
 
 	column delivered_at
 		dataType: dateTime
 		formatString: General Date
+		lineageTag: ed434281-f83c-48e3-a3ec-dedae9267aba
 		summarizeBy: none
 		sourceColumn: delivered_at
 
 	column estimated_delivery_date
 		dataType: dateTime
 		formatString: Short Date
+		lineageTag: 0264fc36-c603-48a4-82e7-599b79846975
 		summarizeBy: none
 		sourceColumn: estimated_delivery_date
 
 	column delivery_days
 		dataType: int64
 		formatString: 0
+		lineageTag: 2838df30-2dd1-460c-a7cb-d7e048cdcb03
 		summarizeBy: none
 		sourceColumn: delivery_days
 
 	column days_late
 		dataType: int64
 		formatString: 0
+		lineageTag: a7f96211-9c83-4506-8558-48ae49aec69e
 		summarizeBy: none
 		sourceColumn: days_late
 
 	column is_late
 		dataType: boolean
+		lineageTag: 41a27fcd-ec2e-4679-b915-c6759e9aae94
 		summarizeBy: none
 		sourceColumn: is_late
 
 	column review_score
 		dataType: int64
 		formatString: 0
+		lineageTag: 2083ec2d-3cac-497e-9503-a04f5109c702
 		summarizeBy: none
 		sourceColumn: review_score
 
 	column has_comment
 		dataType: boolean
+		lineageTag: 68d760e1-c08d-4091-9d6d-0fe3516d8c6d
 		summarizeBy: none
 		sourceColumn: has_comment
 
 	column in_analysis_window
 		dataType: boolean
 		isHidden
+		lineageTag: 586dd245-371e-4819-b0f5-ff962d5685c4
 		summarizeBy: none
 		sourceColumn: in_analysis_window
 
 	column Lateness
 		dataType: string
+		lineageTag: 3ebadccd-bb7b-4e8c-a2c5-e483980260f9
 		summarizeBy: none
 		sourceColumn: Lateness
 		sortByColumn: 'Lateness Order'
@@ -263,12 +308,13 @@ table Orders
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 5779d655-bb0d-40b1-8890-8d701c50f954
 		summarizeBy: none
 		sourceColumn: Lateness Order
 
 	partition Orders = m
 		mode: import
-		source = ```
+		source =
 				let
 				    Source = Csv.Document(
 				        Web.Contents(BaseUrl, [RelativePath = "fct_orders.csv"]),
@@ -319,5 +365,4 @@ table Orders
 				    Result = #"Lateness"
 				in
 				    Result
-				```
 

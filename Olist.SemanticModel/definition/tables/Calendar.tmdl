@@ -1,23 +1,27 @@
 /// Calendar from dbt (dim_date), marked as the model's date table.
 table Calendar
+	lineageTag: 761e249a-dbed-4406-9c64-3a421eb58495
 	dataCategory: Time
 
 	column date_day
 		dataType: dateTime
 		isKey
 		formatString: Short Date
+		lineageTag: bebcc3b0-58ba-4b4d-bc5c-d790f5c00968
 		summarizeBy: none
 		sourceColumn: date_day
 
 	column month_start
 		dataType: dateTime
 		formatString: mmm yyyy
+		lineageTag: 1d0cfb62-2d71-4673-9a9c-74835457bee8
 		summarizeBy: none
 		sourceColumn: month_start
 
 	column year
 		dataType: int64
 		formatString: 0
+		lineageTag: 7c6ff4a0-2448-4015-80dd-f38ec53d9af2
 		summarizeBy: none
 		sourceColumn: year
 
@@ -25,6 +29,7 @@ table Calendar
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: cff18b27-1dee-40e8-b8ac-d348d50c17cb
 		summarizeBy: none
 		sourceColumn: month
 
@@ -32,29 +37,33 @@ table Calendar
 		dataType: int64
 		isHidden
 		formatString: 0
+		lineageTag: 12b6c6b9-b6d7-4ed3-b60c-ec0c63635e0e
 		summarizeBy: none
 		sourceColumn: day_of_week
 
 	column is_weekend
 		dataType: boolean
+		lineageTag: 44b0f54d-a266-42e0-9df7-e59eed54f131
 		summarizeBy: none
 		sourceColumn: is_weekend
 
 	column in_analysis_window
 		dataType: boolean
 		isHidden
+		lineageTag: 970f0414-655a-4ac7-8a60-b5f7a0c8fed4
 		summarizeBy: none
 		sourceColumn: in_analysis_window
 
 	column 'Month Name'
 		dataType: string
+		lineageTag: a0eb5c28-7f13-4c8b-8588-6094d6ee858d
 		summarizeBy: none
 		sourceColumn: Month Name
 		sortByColumn: month_start
 
 	partition Calendar = m
 		mode: import
-		source = ```
+		source =
 				let
 				    Source = Csv.Document(
 				        Web.Contents(BaseUrl, [RelativePath = "dim_date.csv"]),
@@ -80,5 +89,4 @@ table Calendar
 				    Result = #"Month Name"
 				in
 				    Result
-				```
 

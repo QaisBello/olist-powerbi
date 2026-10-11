@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
   "name": "78c2eaea895d5aa6a18c",
   "position": {
     "x": 24,
     "y": 512,
     "z": 12,
-    "width": 900,
     "height": 196,
+    "width": 900,
     "tabOrder": 12
   },
   "visual": {
@@ -28,6 +28,7 @@
               },
               "queryRef": "Calendar.month_start",
               "nativeQueryRef": "month_start",
+              "active": true,
               "displayName": "Month"
             }
           ]
@@ -53,7 +54,6 @@
         }
       }
     },
-    "drillFilterOtherVisuals": true,
     "objects": {
       "dataPoint": [
         {
@@ -101,6 +101,7 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
   }
 }

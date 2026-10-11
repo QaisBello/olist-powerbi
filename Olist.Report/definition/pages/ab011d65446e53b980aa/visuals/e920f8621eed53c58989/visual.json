@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.13.0/schema.json",
   "name": "e920f8621eed53c58989",
   "position": {
     "x": 800,
     "y": 76,
     "z": 11,
-    "width": 456,
     "height": 400,
+    "width": 456,
     "tabOrder": 11
   },
   "visual": {
@@ -28,43 +28,8 @@
               },
               "queryRef": "Products.category",
               "nativeQueryRef": "category",
+              "active": true,
               "displayName": "Category"
-            }
-          ]
-        },
-        "X": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Orders"
-                    }
-                  },
-                  "Property": "% Late"
-                }
-              },
-              "queryRef": "Orders.% Late",
-              "nativeQueryRef": "% Late"
-            }
-          ]
-        },
-        "Y": {
-          "projections": [
-            {
-              "field": {
-                "Measure": {
-                  "Expression": {
-                    "SourceRef": {
-                      "Entity": "Orders"
-                    }
-                  },
-                  "Property": "Avg Review"
-                }
-              },
-              "queryRef": "Orders.Avg Review",
-              "nativeQueryRef": "Avg Review"
             }
           ]
         },
@@ -86,10 +51,46 @@
               "displayName": "Orders"
             }
           ]
+        },
+        "X": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Orders"
+                    }
+                  },
+                  "Property": "% Late"
+                }
+              },
+              "queryRef": "Orders.% Late",
+              "nativeQueryRef": "% Late",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Orders"
+                    }
+                  },
+                  "Property": "Avg Review"
+                }
+              },
+              "queryRef": "Orders.Avg Review",
+              "nativeQueryRef": "Avg Review"
+            }
+          ]
         }
       }
     },
-    "drillFilterOtherVisuals": true,
     "objects": {
       "dataPoint": [
         {
@@ -137,6 +138,7 @@
           }
         }
       ]
-    }
+    },
+    "drillFilterOtherVisuals": true
   }
 }

@@ -1,25 +1,29 @@
 /// Marketplace sellers.
 table Sellers
+	lineageTag: e310103d-ad92-4e44-a2a8-aab8b7d3e668
 
 	column seller_id
 		dataType: string
 		isKey
+		lineageTag: 16d44478-58c4-4bd1-a1db-25f3f5de0966
 		summarizeBy: none
 		sourceColumn: seller_id
 
 	column state
 		dataType: string
+		lineageTag: e62eb715-8e70-4efa-9241-fa94b3bba8fa
 		summarizeBy: none
 		sourceColumn: state
 
 	column city
 		dataType: string
+		lineageTag: 038a8c6a-c3ff-4427-8102-06292e8d5354
 		summarizeBy: none
 		sourceColumn: city
 
 	partition Sellers = m
 		mode: import
-		source = ```
+		source =
 				let
 				    Source = Csv.Document(
 				        Web.Contents(BaseUrl, [RelativePath = "dim_sellers.csv"]),
@@ -41,5 +45,4 @@ table Sellers
 				    Result = #"Filtered Rows"
 				in
 				    Result
-				```
 

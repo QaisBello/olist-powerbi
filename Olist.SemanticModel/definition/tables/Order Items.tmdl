@@ -1,39 +1,46 @@
 /// One row per item sold (dbt model fct_order_items).
 table 'Order Items'
+	lineageTag: a4ef2783-3751-47b8-8c84-9a0569ae6fa4
 
 	column order_id
 		dataType: string
 		isHidden
+		lineageTag: 648fb262-99e2-4e24-86a3-17323fbc0d91
 		summarizeBy: none
 		sourceColumn: order_id
 
 	column order_item_id
 		dataType: int64
 		formatString: 0
+		lineageTag: 3996f07d-45e0-45a2-a27a-7255400a42cb
 		summarizeBy: none
 		sourceColumn: order_item_id
 
 	column product_id
 		dataType: string
 		isHidden
+		lineageTag: e9ec9acc-5e27-4b67-872c-9b6e81ae5c3c
 		summarizeBy: none
 		sourceColumn: product_id
 
 	column seller_id
 		dataType: string
 		isHidden
+		lineageTag: 62517945-45b9-4774-8db3-d04a97944410
 		summarizeBy: none
 		sourceColumn: seller_id
 
 	column customer_unique_id
 		dataType: string
 		isHidden
+		lineageTag: 4beba3d7-24b8-4048-b7cb-508ea011a187
 		summarizeBy: none
 		sourceColumn: customer_unique_id
 
 	column customer_state
 		dataType: string
 		isHidden
+		lineageTag: 29b4aab0-ba21-4226-a29f-c0f106cf4a19
 		summarizeBy: none
 		sourceColumn: customer_state
 
@@ -41,42 +48,48 @@ table 'Order Items'
 		dataType: dateTime
 		isHidden
 		formatString: Short Date
+		lineageTag: 1c5a75d1-1e1d-4dce-b9f7-9f3e4368bb4b
 		summarizeBy: none
 		sourceColumn: purchase_date
 
 	column order_status
 		dataType: string
 		isHidden
+		lineageTag: 08ff6007-0973-446d-b9fa-c2037de67298
 		summarizeBy: none
 		sourceColumn: order_status
 
 	column category
 		dataType: string
 		isHidden
+		lineageTag: 1f2da37b-cb04-4f59-b027-30b4c8b6ef01
 		summarizeBy: none
 		sourceColumn: category
 
 	column price
 		dataType: decimal
 		formatString: #,0.00
+		lineageTag: 634f1ac4-d893-4191-8b37-b7329db8607f
 		summarizeBy: none
 		sourceColumn: price
 
 	column freight_value
 		dataType: decimal
 		formatString: #,0.00
+		lineageTag: 2fc7a157-38d5-4fdf-81fd-459a5d007d08
 		summarizeBy: none
 		sourceColumn: freight_value
 
 	column in_analysis_window
 		dataType: boolean
 		isHidden
+		lineageTag: 3e822077-7d92-43cc-a6cd-f0dc6eaeef6a
 		summarizeBy: none
 		sourceColumn: in_analysis_window
 
 	partition 'Order Items' = m
 		mode: import
-		source = ```
+		source =
 				let
 				    Source = Csv.Document(
 				        Web.Contents(BaseUrl, [RelativePath = "fct_order_items.csv"]),
@@ -107,5 +120,4 @@ table 'Order Items'
 				    Result = #"Filtered Rows"
 				in
 				    Result
-				```
 
