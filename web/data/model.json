@@ -1,0 +1,707 @@
+{
+ "tables": [
+  {
+   "name": "Orders",
+   "file": "fct_orders.csv",
+   "description": "One row per order (dbt model fct_orders), January 2017 to August 2018.",
+   "date": false,
+   "columns": [
+    {
+     "name": "order_id",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "customer_unique_id",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "customer_state",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "order_status",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "purchased_at",
+     "type": "dateTime",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "purchase_date",
+     "type": "dateTime",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "items",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "sellers",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "items_value",
+     "type": "decimal",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "freight_value",
+     "type": "decimal",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "order_value",
+     "type": "decimal",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "payment_value",
+     "type": "decimal",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "payment_type",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "installments",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "used_voucher",
+     "type": "boolean",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "payment_mismatch",
+     "type": "boolean",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "delivered_at",
+     "type": "dateTime",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "estimated_delivery_date",
+     "type": "dateTime",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "delivery_days",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "days_late",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "is_late",
+     "type": "boolean",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "review_score",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "has_comment",
+     "type": "boolean",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "in_analysis_window",
+     "type": "boolean",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "Lateness",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "Lateness Order",
+     "type": "int64",
+     "hidden": true,
+     "key": false
+    }
+   ]
+  },
+  {
+   "name": "Order Items",
+   "file": "fct_order_items.csv",
+   "description": "One row per item sold (dbt model fct_order_items).",
+   "date": false,
+   "columns": [
+    {
+     "name": "order_id",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "order_item_id",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "product_id",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "seller_id",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "customer_unique_id",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "customer_state",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "purchase_date",
+     "type": "dateTime",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "order_status",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "category",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "price",
+     "type": "decimal",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "freight_value",
+     "type": "decimal",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "in_analysis_window",
+     "type": "boolean",
+     "hidden": true,
+     "key": false
+    }
+   ]
+  },
+  {
+   "name": "Customers",
+   "file": "dim_customers.csv",
+   "description": "One row per person (customer_unique_id), not per order.",
+   "date": false,
+   "columns": [
+    {
+     "name": "customer_unique_id",
+     "type": "string",
+     "hidden": false,
+     "key": true
+    },
+    {
+     "name": "state",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "city",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "first_order_at",
+     "type": "dateTime",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "last_order_at",
+     "type": "dateTime",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "orders",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "is_repeat_customer",
+     "type": "boolean",
+     "hidden": false,
+     "key": false
+    }
+   ]
+  },
+  {
+   "name": "Products",
+   "file": "dim_products.csv",
+   "description": "Products with English category names.",
+   "date": false,
+   "columns": [
+    {
+     "name": "product_id",
+     "type": "string",
+     "hidden": false,
+     "key": true
+    },
+    {
+     "name": "category",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "category_pt",
+     "type": "string",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "weight_g",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "photos",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "volume_cm3",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    }
+   ]
+  },
+  {
+   "name": "Sellers",
+   "file": "dim_sellers.csv",
+   "description": "Marketplace sellers.",
+   "date": false,
+   "columns": [
+    {
+     "name": "seller_id",
+     "type": "string",
+     "hidden": false,
+     "key": true
+    },
+    {
+     "name": "state",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "city",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    }
+   ]
+  },
+  {
+   "name": "Calendar",
+   "file": "dim_date.csv",
+   "description": "Calendar from dbt (dim_date), marked as the model's date table.",
+   "date": true,
+   "columns": [
+    {
+     "name": "date_day",
+     "type": "dateTime",
+     "hidden": false,
+     "key": true
+    },
+    {
+     "name": "month_start",
+     "type": "dateTime",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "year",
+     "type": "int64",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "month",
+     "type": "int64",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "day_of_week",
+     "type": "int64",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "is_weekend",
+     "type": "boolean",
+     "hidden": false,
+     "key": false
+    },
+    {
+     "name": "in_analysis_window",
+     "type": "boolean",
+     "hidden": true,
+     "key": false
+    },
+    {
+     "name": "Month",
+     "type": "string",
+     "hidden": false,
+     "key": false
+    }
+   ]
+  }
+ ],
+ "relationships": [
+  {
+   "fromTable": "Orders",
+   "fromColumn": "purchase_date",
+   "toTable": "Calendar",
+   "toColumn": "date_day",
+   "both": false
+  },
+  {
+   "fromTable": "Orders",
+   "fromColumn": "customer_unique_id",
+   "toTable": "Customers",
+   "toColumn": "customer_unique_id",
+   "both": false
+  },
+  {
+   "fromTable": "Order Items",
+   "fromColumn": "order_id",
+   "toTable": "Orders",
+   "toColumn": "order_id",
+   "both": true
+  },
+  {
+   "fromTable": "Order Items",
+   "fromColumn": "product_id",
+   "toTable": "Products",
+   "toColumn": "product_id",
+   "both": false
+  },
+  {
+   "fromTable": "Order Items",
+   "fromColumn": "seller_id",
+   "toTable": "Sellers",
+   "toColumn": "seller_id",
+   "both": false
+  }
+ ],
+ "measures": [
+  {
+   "name": "Order Count",
+   "folder": "Sales",
+   "format": "#,0",
+   "dax": "COUNTROWS ( Orders )",
+   "description": "Orders placed."
+  },
+  {
+   "name": "Revenue",
+   "folder": "Sales",
+   "format": "\"R$\"#,0",
+   "dax": "SUM ( 'Order Items'[price] )",
+   "description": "Value of goods sold, excluding freight (Brazilian reais)."
+  },
+  {
+   "name": "Freight",
+   "folder": "Sales",
+   "format": "\"R$\"#,0",
+   "dax": "SUM ( 'Order Items'[freight_value] )",
+   "description": "Freight charged to customers."
+  },
+  {
+   "name": "Avg Order Value",
+   "folder": "Sales",
+   "format": "\"R$\"#,0.00",
+   "dax": "DIVIDE ( [Revenue], [Order Count] )",
+   "description": "Revenue per order."
+  },
+  {
+   "name": "Customer Count",
+   "folder": "Sales",
+   "format": "#,0",
+   "dax": "DISTINCTCOUNT ( Orders[customer_unique_id] )",
+   "description": "Distinct people who ordered."
+  },
+  {
+   "name": "Revenue LY",
+   "folder": "Sales",
+   "format": "\"R$\"#,0",
+   "dax": "CALCULATE ( [Revenue], SAMEPERIODLASTYEAR ( 'Calendar'[date_day] ) )",
+   "description": "Revenue in the same period a year earlier."
+  },
+  {
+   "name": "Revenue YoY %",
+   "folder": "Sales",
+   "format": "0.0%;-0.0%;0.0%",
+   "dax": "VAR _ly = [Revenue LY]\nRETURN\n    IF ( NOT ISBLANK ( _ly ), DIVIDE ( [Revenue] - _ly, _ly ) )",
+   "description": "Change in revenue against the same period a year earlier."
+  },
+  {
+   "name": "Revenue Running Total",
+   "folder": "Sales",
+   "format": "\"R$\"#,0",
+   "dax": "CALCULATE (\n    [Revenue],\n    FILTER ( ALL ( 'Calendar'[date_day] ), 'Calendar'[date_day] <= MAX ( 'Calendar'[date_day] ) )\n)",
+   "description": "Cumulative revenue up to the latest date in context."
+  },
+  {
+   "name": "Delivered Orders",
+   "folder": "Delivery",
+   "format": "#,0",
+   "dax": "CALCULATE (\n    COUNTROWS ( Orders ),\n    Orders[order_status] = \"delivered\",\n    NOT ISBLANK ( Orders[delivered_at] )\n)",
+   "description": "Orders delivered, with a delivery date recorded."
+  },
+  {
+   "name": "Late Orders",
+   "folder": "Delivery",
+   "format": "#,0",
+   "dax": "CALCULATE ( [Delivered Orders], Orders[is_late] == TRUE () )",
+   "description": "Delivered after the date promised at checkout."
+  },
+  {
+   "name": "% Late",
+   "folder": "Delivery",
+   "format": "0.0%",
+   "dax": "DIVIDE ( [Late Orders], [Delivered Orders] )",
+   "description": "Share of delivered orders that arrived late."
+  },
+  {
+   "name": "Avg Delivery Days",
+   "folder": "Delivery",
+   "format": "0.0",
+   "dax": "CALCULATE ( AVERAGE ( Orders[delivery_days] ), Orders[order_status] = \"delivered\" )",
+   "description": "Days from purchase to delivery."
+  },
+  {
+   "name": "Avg Review",
+   "folder": "Reviews",
+   "format": "0.00",
+   "dax": "AVERAGE ( Orders[review_score] )",
+   "description": "Average review score, 1 to 5."
+  },
+  {
+   "name": "Avg Review (On Time)",
+   "folder": "Reviews",
+   "format": "0.00",
+   "dax": "CALCULATE ( [Avg Review], Orders[is_late] == FALSE () )",
+   "description": "Average review for orders delivered on or before the promised date."
+  },
+  {
+   "name": "Avg Review (Late)",
+   "folder": "Reviews",
+   "format": "0.00",
+   "dax": "CALCULATE ( [Avg Review], Orders[is_late] == TRUE () )",
+   "description": "Average review for orders delivered late."
+  },
+  {
+   "name": "Review Gap",
+   "folder": "Reviews",
+   "format": "0.00",
+   "dax": "[Avg Review (On Time)] - [Avg Review (Late)]",
+   "description": "How many stars a late delivery costs."
+  },
+  {
+   "name": "% One-Star",
+   "folder": "Reviews",
+   "format": "0.0%",
+   "dax": "DIVIDE (\n    CALCULATE ( COUNTROWS ( Orders ), Orders[review_score] = 1 ),\n    CALCULATE ( COUNTROWS ( Orders ), NOT ISBLANK ( Orders[review_score] ) )\n)",
+   "description": "Share of reviewed orders rated one star."
+  },
+  {
+   "name": "Repeat Customer %",
+   "folder": "Customers",
+   "format": "0.0%",
+   "dax": "DIVIDE (\n    CALCULATE ( COUNTROWS ( Customers ), Customers[is_repeat_customer] == TRUE () ),\n    COUNTROWS ( Customers )\n)",
+   "description": "Share of customers who ordered more than once."
+  }
+ ],
+ "pages": [
+  {
+   "page": "Delivery and reviews",
+   "visuals": [
+    {
+     "type": "textbox",
+     "x": 24,
+     "y": 12,
+     "width": 900,
+     "height": 56
+    },
+    {
+     "type": "card",
+     "x": 24,
+     "y": 76,
+     "width": 236,
+     "height": 104
+    },
+    {
+     "type": "card",
+     "x": 272,
+     "y": 76,
+     "width": 236,
+     "height": 104
+    },
+    {
+     "type": "card",
+     "x": 520,
+     "y": 76,
+     "width": 236,
+     "height": 104
+    },
+    {
+     "type": "card",
+     "x": 768,
+     "y": 76,
+     "width": 236,
+     "height": 104
+    },
+    {
+     "type": "card",
+     "x": 1016,
+     "y": 76,
+     "width": 236,
+     "height": 104
+    },
+    {
+     "type": "clusteredColumnChart",
+     "x": 24,
+     "y": 196,
+     "width": 612,
+     "height": 300
+    },
+    {
+     "type": "clusteredBarChart",
+     "x": 652,
+     "y": 196,
+     "width": 604,
+     "height": 300
+    },
+    {
+     "type": "lineChart",
+     "x": 24,
+     "y": 512,
+     "width": 900,
+     "height": 196
+    },
+    {
+     "type": "slicer",
+     "x": 940,
+     "y": 512,
+     "width": 316,
+     "height": 196
+    }
+   ]
+  },
+  {
+   "page": "Categories",
+   "visuals": [
+    {
+     "type": "textbox",
+     "x": 24,
+     "y": 12,
+     "width": 900,
+     "height": 56
+    },
+    {
+     "type": "tableEx",
+     "x": 24,
+     "y": 76,
+     "width": 760,
+     "height": 632
+    },
+    {
+     "type": "scatterChart",
+     "x": 800,
+     "y": 76,
+     "width": 456,
+     "height": 400
+    },
+    {
+     "type": "card",
+     "x": 800,
+     "y": 496,
+     "width": 220,
+     "height": 104
+    },
+    {
+     "type": "card",
+     "x": 1032,
+     "y": 496,
+     "width": 224,
+     "height": 104
+    }
+   ]
+  }
+ ],
+ "base_url": "https://raw.githubusercontent.com/QaisBello/olist-dbt-warehouse/main/data/clean/"
+}

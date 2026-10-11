@@ -1,0 +1,82 @@
+/// Calendar from dbt (dim_date), marked as the model's date table.
+table Calendar
+	dataCategory: Time
+
+	column date_day
+		dataType: dateTime
+		isKey
+		formatString: Short Date
+		summarizeBy: none
+		sourceColumn: date_day
+
+	column month_start
+		dataType: dateTime
+		formatString: mmm yyyy
+		summarizeBy: none
+		sourceColumn: month_start
+
+	column year
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: year
+
+	column month
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: month
+
+	column day_of_week
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+	column is_weekend
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: is_weekend
+
+	column in_analysis_window
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: in_analysis_window
+
+	column Month
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: month_start
+
+	partition Calendar = m
+		mode: import
+		source = ```
+				let
+				    Source = Csv.Document(
+				        Web.Contents(BaseUrl, [RelativePath = "dim_date.csv"]),
+				        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        #"Promoted Headers",
+				        {
+				            {"date_day", type datetime},
+				            {"month_start", type datetime},
+				            {"year", Int64.Type},
+				            {"month", Int64.Type},
+				            {"day_of_week", Int64.Type},
+				            {"is_weekend", type logical},
+				            {"in_analysis_window", type logical}
+				        },
+				        "en-US"
+				    ),
+				    #"Month" = Table.AddColumn(#"Changed Types", "Month", each Date.ToText(Date.From([month_start]), "MMM yyyy", "en-GB"), type text),
+				    Result = #"Month"
+				in
+				    Result
+				```
+

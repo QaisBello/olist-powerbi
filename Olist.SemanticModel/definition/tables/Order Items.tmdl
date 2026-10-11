@@ -1,0 +1,109 @@
+/// One row per item sold (dbt model fct_order_items).
+table 'Order Items'
+
+	column order_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: order_id
+
+	column order_item_id
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: order_item_id
+
+	column product_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: product_id
+
+	column seller_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: seller_id
+
+	column customer_unique_id
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: customer_unique_id
+
+	column customer_state
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: customer_state
+
+	column purchase_date
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		summarizeBy: none
+		sourceColumn: purchase_date
+
+	column order_status
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: order_status
+
+	column category
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: category
+
+	column price
+		dataType: decimal
+		formatString: #,0.00
+		summarizeBy: none
+		sourceColumn: price
+
+	column freight_value
+		dataType: decimal
+		formatString: #,0.00
+		summarizeBy: none
+		sourceColumn: freight_value
+
+	column in_analysis_window
+		dataType: boolean
+		isHidden
+		summarizeBy: none
+		sourceColumn: in_analysis_window
+
+	partition 'Order Items' = m
+		mode: import
+		source = ```
+				let
+				    Source = Csv.Document(
+				        Web.Contents(BaseUrl, [RelativePath = "fct_order_items.csv"]),
+				        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        #"Promoted Headers",
+				        {
+				            {"order_id", type text},
+				            {"order_item_id", Int64.Type},
+				            {"product_id", type text},
+				            {"seller_id", type text},
+				            {"customer_unique_id", type text},
+				            {"customer_state", type text},
+				            {"purchase_date", type datetime},
+				            {"order_status", type text},
+				            {"category", type text},
+				            {"price", Currency.Type},
+				            {"freight_value", Currency.Type},
+				            {"in_analysis_window", type logical}
+				        },
+				        "en-US"
+				    ),
+				    #"Filtered Rows" = Table.SelectRows(#"Changed Types", each [in_analysis_window] = true),
+				    Result = #"Filtered Rows"
+				in
+				    Result
+				```
+

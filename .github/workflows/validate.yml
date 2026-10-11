@@ -1,0 +1,25 @@
+name: validate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Regenerate the project from the spec
+        run: python tools/generate.py
+      - name: Committed files match the spec
+        # A warning, not a failure: saving in Power BI Desktop reformats files (lineage tags, ordering) without changing the model.
+        run: git diff --quiet -- Olist.pbip Olist.SemanticModel Olist.Report docs/measures.md web/data/model.json || echo "::warning::Project files differ from tools/generate.py. If you edited in Power BI Desktop, copy the change into the spec."
+      - name: Schema and reference checks (on the regenerated files)
+        run: python tools/validate.py
+      - name: Recompute expected values from the warehouse CSVs
+        run: python tools/expected.py && git diff --stat -- docs/expected_values.md web/data/report.json

@@ -1,0 +1,400 @@
+<title>Olist in Power BI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+/* Layout: the report first (both Power BI pages, rebuilt for the web with the category slicer working), then the
+   semantic model behind it: star schema, the 18 DAX measures, and how the .pbip is generated and validated as code. */
+:root{
+  --paper:#f5f6f4; --card:#fcfcfb; --ink:#13201b; --ink-2:#47554f; --muted:#7c8781; --rule:#e0e4e1; --axis:#c6ccc8;
+  --accent:#0f766e; --warn:#c2410c; --ctx:#b6beb9; --ok:#16845f; --band:rgba(15,118,110,.07);
+  --l-source:#8a8f8c; --l-seed:#a16207; --l-staging:#2f6fb0; --l-intermediate:#7c5cc4; --l-marts:#0f766e;
+  --sans:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --paper:#0f1412; --card:#161c1a; --ink:#e8eeeb; --ink-2:#b3beb9; --muted:#808b86; --rule:#26302c; --axis:#38443f;
+  --accent:#2bb3a6; --warn:#ec7a43; --ctx:#4a5550; --ok:#33b487; --band:rgba(43,179,166,.08);
+  --l-source:#8f9692; --l-seed:#d6a03a; --l-staging:#5d98d6; --l-intermediate:#a48ae6; --l-marts:#2bb3a6; color-scheme:dark; } }
+:root[data-theme="dark"]{
+  --paper:#0f1412; --card:#161c1a; --ink:#e8eeeb; --ink-2:#b3beb9; --muted:#808b86; --rule:#26302c; --axis:#38443f;
+  --accent:#2bb3a6; --warn:#ec7a43; --ctx:#4a5550; --ok:#33b487; --band:rgba(43,179,166,.08);
+  --l-source:#8f9692; --l-seed:#d6a03a; --l-staging:#5d98d6; --l-intermediate:#a48ae6; --l-marts:#2bb3a6; color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:14.5px;line-height:1.55}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:28px 56px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3,p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.head{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px 40px;align-items:end}
+.head h1{font-weight:800;font-size:clamp(42px,6.2vw,80px);line-height:.95;letter-spacing:-.035em;margin-top:12px}
+.head h1 span{color:var(--warn)}
+.lede{font-size:clamp(16px,1.5vw,19px);line-height:1.5;color:var(--ink-2);margin-top:16px;max-width:56ch}
+.lede b{color:var(--ink)}
+.src{font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.src a{color:var(--ink)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted);flex:none}
+.dot.live{background:var(--ok)}
+.card{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:18px 20px}
+.stack{display:flex;flex-direction:column;gap:8px;font-size:13.5px;color:var(--ink-2)}
+.stack b{color:var(--ink)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;padding:3px 9px;border-radius:99px;border:1px solid var(--rule);background:var(--paper);color:var(--ink-2)}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));border:1px solid var(--rule);border-radius:16px;background:var(--card);overflow:hidden}
+.kpi{padding:14px 16px;border-right:1px solid var(--rule);min-width:0}
+.kpi:last-child{border-right:0}
+.kpi .k{font-size:12px;color:var(--ink-2);font-weight:600}
+.kpi .v{font-weight:800;font-size:clamp(24px,2.6vw,32px);line-height:1.1;margin-top:4px;letter-spacing:-.02em}
+.kpi .v small{font-size:.45em;font-weight:600;color:var(--muted);margin-left:3px;letter-spacing:0}
+.kpi .s{font-family:var(--mono);font-size:10.5px;color:var(--muted);margin-top:3px}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:16px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.panel h2{font-weight:800;font-size:clamp(20px,2.1vw,25px);line-height:1.15;letter-spacing:-.02em}
+.sub{color:var(--ink-2);max-width:80ch}
+.sub b{color:var(--ink)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:18px}
+svg{display:block;width:100%}
+svg text{fill:var(--ink-2);font-family:var(--sans);font-size:11px}
+.axis text{fill:var(--muted);font-family:var(--mono);font-size:10px}
+.axis line,.axis path{stroke:var(--axis)}
+.seg{display:inline-flex;border:1px solid var(--rule);border-radius:10px;overflow:hidden;background:var(--paper)}
+.seg button{all:unset;cursor:pointer;font-size:13px;padding:6px 12px;color:var(--ink-2);border-right:1px solid var(--rule)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);font-weight:600}
+.seg button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{font-size:13.5px;color:var(--ink-2);border-left:3px solid var(--warn);padding:8px 12px;background:color-mix(in srgb,var(--warn) 7%,var(--card));border-radius:0 10px 10px 0}
+.note b{color:var(--ink)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px}
+.tests{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tests .card{padding:12px 14px}
+.tests .n{font-weight:800;font-size:26px;letter-spacing:-.02em}
+.tests .l{font-size:12px;color:var(--ink-2)}
+.tablewrap{max-height:420px;overflow:auto;border:1px solid var(--rule);border-radius:12px}
+table{border-collapse:collapse;width:100%;font-size:12.5px}
+th{position:sticky;top:0;background:var(--card);font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:500;text-align:left;padding:7px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}
+td{padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+td.tn{font-family:var(--mono);font-size:11.5px;word-break:break-all;max-width:420px}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.st{font-family:var(--mono);font-size:11px;padding:1px 7px;border-radius:99px;border:1px solid var(--rule)}
+.st.pass{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--rule))}
+.st.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 40%,var(--rule))}
+.btn{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;border-radius:10px;padding:9px 14px;background:var(--ink);color:var(--paper);text-decoration:none;align-self:flex-start}
+.tip{position:fixed;pointer-events:none;opacity:0;background:var(--ink);color:var(--paper);font-size:12px;padding:8px 10px;border-radius:8px;max-width:300px;z-index:20;transition:opacity .1s;line-height:1.45}
+footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+footer a{color:var(--ink-2)}
+@media (max-width:900px){
+  .head,.grid2{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi{border-bottom:1px solid var(--rule)}
+  .tests{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+.canvas{background:var(--card);border:1px solid var(--rule);border-radius:16px;overflow:hidden}
+.tabs{display:flex;align-items:center;gap:4px;padding:8px 10px 0;border-bottom:1px solid var(--rule);background:var(--paper);flex-wrap:wrap}
+.tabs button{all:unset;cursor:pointer;font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px 10px 0 0;color:var(--ink-2);border:1px solid transparent;border-bottom:0;margin-bottom:-1px}
+.tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);border-color:var(--rule)}
+.tabs button:focus-visible{outline:2px solid var(--accent)}
+.tabs .sp{flex:1}
+.slicer{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2);padding-bottom:6px}
+.slicer select{font:inherit;font-size:13px;color:var(--ink);background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:5px 8px;max-width:220px}
+.pg{padding:16px;display:flex;flex-direction:column;gap:14px}
+.pg[hidden]{display:none}
+.pg h3{font-size:14px;font-weight:700}
+.pg .cap{font-size:12px;color:var(--muted)}
+.tile{border:1px solid var(--rule);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.cards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.cards .tile .v{font-weight:800;font-size:clamp(22px,2.4vw,30px);letter-spacing:-.02em;line-height:1.1}
+.cards .tile .k{font-size:12px;color:var(--ink-2);font-weight:600}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cards2 .tile .v{font-weight:800;font-size:28px;letter-spacing:-.02em}
+.cards2 .tile .k{font-size:12px;color:var(--ink-2);font-weight:600}
+.p2{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px}
+.p2 .right{display:flex;flex-direction:column;gap:14px}
+th.s{cursor:pointer}
+th.s:hover{color:var(--ink)}
+th.n,td.n{text-align:right}
+tr.hi td{background:color-mix(in srgb,var(--accent) 8%,var(--card))}
+.model{overflow-x:auto}
+.model svg{min-width:760px}
+.mbox rect.b{fill:var(--card);stroke:var(--axis)}
+.mbox rect.h{fill:var(--ink)}
+.mbox text.t{fill:var(--paper);font-weight:700;font-size:12.5px}
+.mbox text.c{font-family:var(--mono);font-size:10.5px;fill:var(--ink-2)}
+.mbox text.c.key{fill:var(--ink);font-weight:500}
+.mbox text.c.hid{fill:var(--muted);font-style:italic}
+.mbox text.m{font-size:10.5px;fill:var(--accent);font-weight:600}
+.measures{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.meas{border:1px solid var(--rule);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.meas .top{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.meas .nm{font-weight:700}
+.meas .d{font-size:12.5px;color:var(--ink-2)}
+pre.dax{margin:0;font-family:var(--mono);font-size:11.5px;line-height:1.5;background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:9px 11px;overflow-x:auto;white-space:pre}
+.dax .kw{color:var(--l-staging)} .dax .st{color:var(--warn);border:0;padding:0} .dax .ms{color:var(--accent);font-weight:500} .dax .cl{color:var(--l-intermediate)}
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.compare .tile .v{font-weight:800;font-size:30px;letter-spacing:-.02em}
+.tree{font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--paper);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;white-space:pre;overflow-x:auto;margin:0}
+.checks{display:flex;flex-direction:column;gap:8px;font-size:13.5px;color:var(--ink-2);margin:0;padding-left:18px}
+.checks b{color:var(--ink)}
+@media (max-width:900px){
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .p2,.compare,.measures{grid-template-columns:1fr}
+}
+</style>
+<!--SITEBAR-->
+<div class="wrap">
+  <header class="head">
+    <div>
+      <div class="eyebrow">Data Analytics · Power BI · DAX · Brazilian e-commerce, 2017-18</div>
+      <h1>Late parcels,<br><span>in Power BI</span></h1>
+      <p class="lede">The Olist warehouse, modelled in <b>Power BI</b>: a star-schema semantic model with <b>18 DAX measures</b> and a two-page report on delivery and reviews. The whole project is <b>written as code</b> (a .pbip with TMDL and PBIR files), generated from one script and checked against Microsoft's schemas on every push.</p>
+      <div class="src" id="src"><span class="dot"></span>Loading…</div>
+    </div>
+    <aside class="card stack">
+      <div class="eyebrow">The stack</div>
+      <div class="pills"><span class="pill">Power BI Desktop</span><span class="pill">DAX</span><span class="pill">Power Query (M)</span><span class="pill">TMDL</span><span class="pill">PBIR</span><span class="pill">Python</span><span class="pill">GitHub Actions</span></div>
+      <div>The model loads the <b>dbt marts</b> from the <a href="../../data-engineering/olist-warehouse/index.html">Olist warehouse</a> straight from GitHub, through one <b>BaseUrl</b> parameter. Below, both report pages are rebuilt for the web, with numbers from a pandas reference implementation of the DAX.</div>
+    </aside>
+  </header>
+
+  <section class="panel">
+    <div><h2>The report</h2><p class="sub">Both pages of the Power BI report, laid out as in the .pbip. The <b>product category</b> slicer works as it does in Power BI: it filters order items, and reaches orders through the both-directions relationship, so an order counts in every category it has an item in.</p></div>
+    <div class="canvas">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="t1" aria-selected="true" aria-controls="pg1">Delivery and reviews</button>
+        <button role="tab" id="t2" aria-selected="false" aria-controls="pg2">Categories</button>
+        <span class="sp"></span>
+        <label class="slicer" id="slicer">Product category <select id="cat"></select></label>
+      </div>
+      <div class="pg" id="pg1" role="tabpanel">
+        <div class="cards" id="cards1"></div>
+        <div class="grid2">
+          <div class="tile"><h3>Average review by how late the parcel arrived</h3><svg id="late" height="300" role="img" aria-label="Average review by lateness"></svg></div>
+          <div class="tile"><h3>Share delivered late, by customer state</h3><svg id="states" height="300" role="img" aria-label="Late rate by state"></svg></div>
+        </div>
+        <div class="tile"><h3>Orders by month</h3><svg id="monthly" height="190" role="img" aria-label="Orders by month"></svg></div>
+      </div>
+      <div class="pg" id="pg2" role="tabpanel" hidden>
+        <div class="p2">
+          <div class="tile"><h3>Categories ranked by revenue</h3><p class="cap">Click a column to sort. Hover a row to find it on the scatter.</p><div class="tablewrap" style="max-height:560px"><table id="cats"></table></div></div>
+          <div class="right">
+            <div class="tile"><h3>Lateness against reviews, by category</h3><p class="cap">Each circle is a category with 30+ orders, sized by orders. The pattern is loose: lateness explains part of the gap between categories, not all of it.</p><svg id="scatter" height="330" role="img" aria-label="Late rate against average review by category"></svg></div>
+            <div class="cards2" id="cards2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div><h2>The semantic model</h2><p class="sub">A star schema: <b>Orders</b> and <b>Order Items</b> are the facts; Calendar, Customers, Products and Sellers are dimensions. Lines run from the one side (<b>1</b>) to the many side (<b>*</b>); the arrow is the filter direction. Order Items filters Orders both ways, so a product slicer can reach order-level measures. Hidden columns are in grey italics.</p></div>
+    <div class="model"><svg id="model" viewBox="0 0 1080 520" role="img" aria-label="Semantic model diagram"></svg></div>
+  </section>
+
+  <section class="panel">
+    <div><h2>18 DAX measures</h2><p class="sub">All on the Orders table, in display folders. Implicit measures are switched off, so every number in the report comes from one of these.</p></div>
+    <div class="seg" id="folders" role="group" aria-label="Display folder"></div>
+    <div class="measures" id="measures"></div>
+  </section>
+
+  <section class="panel">
+    <div><h2>One character that changes the answer</h2><p class="sub" id="pit-sub"></p></div>
+    <div class="compare" id="pit"></div>
+  </section>
+
+  <section class="panel">
+    <div><h2>A report written as code</h2><p class="sub">A .pbip project is plain text, so it can be reviewed, diffed and tested like any other code. Nothing here was clicked together: <code>tools/generate.py</code> writes every file from one readable spec.</p></div>
+    <div class="grid2">
+<pre class="tree">Olist.pbip                      open this in Power BI Desktop
+Olist.SemanticModel/
+  definition/
+    model.tmdl                  culture, table refs, no implicit measures
+    expressions.tmdl            BaseUrl parameter (where the CSVs live)
+    relationships.tmdl          5 relationships
+    tables/*.tmdl               6 tables: columns, Power Query, measures
+Olist.Report/
+  definition/
+    report.json · pages/*/page.json
+    pages/*/visuals/*/visual.json   15 visuals on 2 pages
+tools/
+  generate.py                   the spec: writes everything above
+  validate.py                   schema + reference checks (CI)
+  expected.py                   the DAX, re-done in pandas
+docs/measures.md · docs/expected_values.md</pre>
+      <ol class="checks">
+        <li><b>Schema-valid.</b> Every report file is validated against Microsoft's published JSON schemas for PBIR, fetched from github.com/microsoft/json-schemas.</li>
+        <li><b>No broken fields.</b> Every column and measure a visual uses exists in the model, as the right kind.</li>
+        <li><b>No broken DAX references.</b> Every [Measure] and 'Table'[Column] in a measure exists, relationships point at real columns, and sort-by columns are present.</li>
+        <li><b>Known answers.</b> <code>tools/expected.py</code> computes every card and chart in pandas with the model's filter rules. After a refresh, Power BI should show the same numbers; they also match the dbt marts (6.8% late, 4.29 against 2.27 stars).</li>
+        <li><b>On every push.</b> GitHub Actions regenerates the project from the spec, flags any drift from the committed files, and runs the checks.</li>
+      </ol>
+    </div>
+  </section>
+
+  <footer>
+    <div><b>Data:</b> Brazilian E-Commerce Public Dataset by Olist (2016-2018), CC BY-NC-SA 4.0, modelled in the <a href="https://github.com/QaisBello/olist-dbt-warehouse" target="_blank" rel="noopener">olist-dbt-warehouse</a> project. Values in Brazilian reais (R$). Analysis window January 2017 to August 2018.</div>
+    <div>Built by Qais Adeniji-Bello. <a href="https://github.com/QaisBello/olist-powerbi" target="_blank" rel="noopener">Power BI project on GitHub</a>.</div>
+  </footer>
+</div>
+<div class="tip" id="tip"></div>
+<script>
+const SOURCE={repo:"QaisBello/olist-powerbi",branch:"main"};
+const FALLBACKS=/*FALLBACKS*/["../"];
+const RAWURL=f=>`https://raw.githubusercontent.com/${SOURCE.repo}/${SOURCE.branch}/${f}`;
+async function get(path){for(const [u,k] of [[RAWURL(path),"live"],...FALLBACKS.map(f=>[f+path,"snapshot"])]){try{const r=await fetch(u,{cache:"no-store"});if(!r.ok)throw 0;return {t:await r.text(),k};}catch(e){}}throw new Error(path);}
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const f0=d3.format(",.0f"), f2=d3.format(".2f"), pc=d3.format(".1%"), esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tip=document.getElementById("tip");
+function showTip(e,h){tip.innerHTML=h;tip.style.opacity=1;const r=tip.getBoundingClientRect();let x=e.clientX+14,y=e.clientY+14;if(x+r.width>innerWidth-8)x=e.clientX-r.width-14;if(y+r.height>innerHeight-8)y=e.clientY-r.height-14;tip.style.left=x+"px";tip.style.top=y+"px";}
+function hideTip(){tip.style.opacity=0;}
+function frame(id){const svg=d3.select("#"+id);svg.selectAll("*").remove();return {svg,W:svg.node().getBoundingClientRect().width,H:+svg.attr("height")};}
+const grid=g=>{g.select(".domain").remove();g.selectAll(".tick line").attr("stroke",css("--rule"));};
+const nice=c=>c.replace(/_/g," ");
+let R,MODEL,cat="",folder="All",sortKey="Revenue",sortDir=-1,hiCat=null;
+const sel=()=>cat?R.categories.find(c=>c.category===cat):R.overall;
+
+function cards1(){
+  const s=sel();
+  const K=[["Orders",f0(s["Order Count"])],["Revenue (R$)","R$"+d3.format(".3~s")(s.Revenue).replace("M","m").replace("k","k")],["Delivered late",s["% Late"]==null?"–":pc(s["% Late"])],
+    ["Review if on time",f2(s["Avg Review (On Time)"])],["Review if late",s["Avg Review (Late)"]==null?"–":f2(s["Avg Review (Late)"])]];
+  document.getElementById("cards1").innerHTML=K.map(([k,v])=>`<div class="tile"><div class="v num">${v}</div><div class="k">${k}</div></div>`).join("");
+}
+function lateChart(){
+  const {svg,W,H}=frame("late"), mg={t:16,r:8,b:46,l:30}, d=sel().lateness;
+  const x=d3.scaleBand().domain(d.map(r=>r.bucket)).range([mg.l,W-mg.r]).padding(.22), y=d3.scaleLinear().domain([0,5]).range([H-mg.b,mg.t]);
+  svg.append("g").attr("class","axis").attr("transform",`translate(${mg.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(W-mg.l-mg.r))).call(grid);
+  const ax=svg.append("g").attr("class","axis").attr("transform",`translate(0,${H-mg.b})`).call(d3.axisBottom(x).tickSize(0));
+  const SHORT={"15+ days early":"−15","8-14 days early":"−8","1-7 days early":"−1","On the day":"0","1-3 days late":"+1","4-7 days late":"+4","8-14 days late":"+8","15+ days late":"+15"};
+  ax.select(".domain").remove();
+  if(W<480){ax.selectAll("text").attr("dy","1.2em").text(v=>SHORT[v]);svg.append("text").attr("x",(mg.l+W-mg.r)/2).attr("y",H-6).attr("text-anchor","middle").style("font-size","10px").style("fill",css("--muted")).text("days early (−) or late (+), from the start of each band");}
+  else ax.selectAll("text").call(t=>t.each(function(v){const s=d3.select(this),w=v.split(" ");s.text(null);s.append("tspan").attr("x",0).attr("dy","1.1em").text(w.slice(0,-1).join(" "));s.append("tspan").attr("x",0).attr("dy","1.15em").text(w[w.length-1]);}));
+  svg.selectAll("rect").data(d).join("rect").attr("x",r=>x(r.bucket)).attr("width",x.bandwidth()).attr("y",r=>y(r.avg_review)).attr("height",r=>y(0)-y(r.avg_review)).attr("rx",3)
+    .attr("fill",r=>css(r.bucket.endsWith("late")?"--warn":"--accent")).on("mousemove",(e,r)=>showTip(e,`<b>${r.bucket}</b><br>Avg Review ${f2(r.avg_review)}<br>${f0(r.orders)} orders`)).on("mouseleave",hideTip);
+  svg.selectAll("text.v").data(d).join("text").attr("class","v").attr("x",r=>x(r.bucket)+x.bandwidth()/2).attr("y",r=>y(r.avg_review)-4).attr("text-anchor","middle").style("font-family","var(--mono)").style("font-size",W<480?"8.5px":"10px").style("fill",css("--ink")).text(r=>f2(r.avg_review));
+}
+function stateChart(){
+  const svg=d3.select("#states"), d=sel().states, H=Math.max(300,d.length*15+30);svg.attr("height",H);
+  const {W}=frame("states"), mg={t:4,r:44,b:20,l:30};
+  const y=d3.scaleBand().domain(d.map(r=>r.state)).range([mg.t,H-mg.b]).padding(.2), x=d3.scaleLinear().domain([0,d3.max(d,r=>r.pct_late)||.1]).nice().range([mg.l,W-mg.r]);
+  svg.append("g").attr("class","axis").attr("transform",`translate(0,${H-mg.b})`).call(d3.axisBottom(x).ticks(4).tickSize(-(H-mg.t-mg.b)).tickFormat(d3.format(".0%"))).call(grid);
+  const g=svg.selectAll("g.r").data(d).join("g").on("mousemove",(e,r)=>showTip(e,`<b>${r.state}</b><br>${pc(r.pct_late)} late<br>${f0(r.delivered)} delivered orders`)).on("mouseleave",hideTip);
+  g.append("rect").attr("x",mg.l).attr("y",r=>y(r.state)).attr("height",y.bandwidth()).attr("width",r=>Math.max(0,x(r.pct_late)-mg.l)).attr("rx",2).attr("fill",css("--accent"));
+  g.append("text").attr("x",mg.l-5).attr("y",r=>y(r.state)+y.bandwidth()/2).attr("dy",".35em").attr("text-anchor","end").style("font-family","var(--mono)").style("font-size","10px").style("fill",css("--ink")).text(r=>r.state);
+  g.append("text").attr("x",r=>x(r.pct_late)+4).attr("y",r=>y(r.state)+y.bandwidth()/2).attr("dy",".35em").style("font-family","var(--mono)").style("font-size","9.5px").text(r=>pc(r.pct_late));
+}
+function monthly(){
+  const {svg,W,H}=frame("monthly"), mg={t:10,r:12,b:24,l:44}, p=d3.timeParse("%Y-%m"), d=sel().months.map(r=>({...r,m:p(r.month)}));
+  const x=d3.scaleTime().domain(d3.extent(d,r=>r.m)).range([mg.l,W-mg.r]), y=d3.scaleLinear().domain([0,d3.max(d,r=>r.orders)]).nice().range([H-mg.b,mg.t]);
+  svg.append("g").attr("class","axis").attr("transform",`translate(${mg.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W-mg.l-mg.r)).tickFormat(d3.format("~s"))).call(grid);
+  svg.append("g").attr("class","axis").attr("transform",`translate(0,${H-mg.b})`).call(d3.axisBottom(x).ticks(W<600?d3.timeMonth.every(6):d3.timeMonth.every(3)).tickFormat(d3.timeFormat("%b %y")).tickSize(3)).select(".domain").remove();
+  svg.append("path").datum(d).attr("fill","none").attr("stroke",css("--accent")).attr("stroke-width",2.2).attr("d",d3.line().x(r=>x(r.m)).y(r=>y(r.orders)));
+  svg.selectAll("circle").data(d).join("circle").attr("cx",r=>x(r.m)).attr("cy",r=>y(r.orders)).attr("r",3.5).attr("fill",css("--accent")).attr("stroke",css("--card")).attr("stroke-width",1.5)
+    .on("mousemove",(e,r)=>showTip(e,`<b>${d3.timeFormat("%B %Y")(r.m)}</b><br>${f0(r.orders)} orders`)).on("mouseleave",hideTip);
+}
+const COLS=[["category","Category",v=>nice(v)],["Revenue","Revenue",v=>"R$"+f0(v)],["Order Count","Orders",f0],["Avg Order Value","AOV",v=>"R$"+f0(v)],["% Late","% Late",v=>v==null?"–":pc(v)],["Avg Review","Avg Review",f2],["% One-Star","% One-Star",v=>v==null?"–":pc(v)]];
+function table(){
+  const rows=[...R.categories].sort((a,b)=>sortKey==="category"?sortDir*a.category.localeCompare(b.category):sortDir*((a[sortKey]??-1)-(b[sortKey]??-1)));
+  const t=document.getElementById("cats");
+  t.innerHTML=`<thead><tr>${COLS.map(([k,l],i)=>`<th class="s${i?" n":""}" data-k="${k}">${l}${k===sortKey?(sortDir<0?" ↓":" ↑"):""}</th>`).join("")}</tr></thead><tbody>${rows.map(r=>`<tr data-c="${esc(r.category)}">${COLS.map(([k,,f],i)=>`<td class="${i?"n":""}">${esc(f(r[k]))}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  t.querySelectorAll("th").forEach(th=>th.onclick=()=>{const k=th.dataset.k;sortDir=k===sortKey?-sortDir:(k==="category"?1:-1);sortKey=k;table();});
+  t.querySelectorAll("tbody tr").forEach(tr=>{tr.onmouseenter=()=>{hiCat=tr.dataset.c;scatter();};tr.onmouseleave=()=>{hiCat=null;scatter();};});
+}
+function scatter(){
+  const {svg,W,H}=frame("scatter"), mg={t:10,r:14,b:34,l:40}, d=R.categories.filter(c=>c["% Late"]!=null&&c["Order Count"]>=30);
+  const x=d3.scaleLinear().domain([0,d3.max(d,c=>c["% Late"])]).nice().range([mg.l,W-mg.r]), y=d3.scaleLinear().domain(d3.extent(d,c=>c["Avg Review"])).nice().range([H-mg.b,mg.t]);
+  const r=d3.scaleSqrt().domain([0,d3.max(d,c=>c["Order Count"])]).range([2,16]);
+  svg.append("g").attr("class","axis").attr("transform",`translate(0,${H-mg.b})`).call(d3.axisBottom(x).ticks(5).tickFormat(d3.format(".0%")).tickSize(-(H-mg.t-mg.b))).call(grid);
+  svg.append("g").attr("class","axis").attr("transform",`translate(${mg.l},0)`).call(d3.axisLeft(y).ticks(5).tickSize(-(W-mg.l-mg.r))).call(grid);
+  svg.append("text").attr("x",W-mg.r).attr("y",H-4).attr("text-anchor","end").style("font-size","10.5px").style("fill",css("--muted")).text("% Late →");
+  svg.append("text").attr("x",mg.l+4).attr("y",mg.t+8).style("font-size","10.5px").style("fill",css("--muted")).text("Avg Review");
+  svg.selectAll("circle").data([...d].sort((a,b)=>b["Order Count"]-a["Order Count"])).join("circle").attr("cx",c=>x(c["% Late"])).attr("cy",c=>y(c["Avg Review"])).attr("r",c=>r(c["Order Count"]))
+    .attr("fill",c=>c.category===hiCat?css("--warn"):css("--accent")).attr("fill-opacity",c=>hiCat&&c.category!==hiCat?.15:.5).attr("stroke",c=>c.category===hiCat?css("--warn"):css("--accent"))
+    .on("mousemove",(e,c)=>showTip(e,`<b>${esc(nice(c.category))}</b><br>${f0(c["Order Count"])} orders<br>${pc(c["% Late"])} late · Avg Review ${f2(c["Avg Review"])}`)).on("mouseleave",hideTip);
+  const h=d.find(c=>c.category===hiCat);
+  if(h)svg.append("text").attr("x",x(h["% Late"])+r(h["Order Count"])+4).attr("y",y(h["Avg Review"])).attr("dy",".35em").style("font-size","11px").style("font-weight",700).style("fill",css("--ink")).text(nice(h.category));
+}
+function cards2(){
+  const o=R.overall;
+  document.getElementById("cards2").innerHTML=[[f2(o["Review Gap"]),"Stars lost to a late delivery"],[pc(o["Repeat Customer %"]),"Customers who came back"]]
+    .map(([v,k])=>`<div class="tile"><div class="v num">${v}</div><div class="k">${k}</div></div>`).join("");
+}
+
+function model(){
+  const svg=d3.select("#model");svg.selectAll("*").remove();
+  const T=new Map(MODEL.tables.map(t=>[t.name,t])), relCols=new Set(MODEL.relationships.flatMap(r=>[r.fromTable+"|"+r.fromColumn,r.toTable+"|"+r.toColumn]));
+  const POS={"Calendar":[20,30],"Customers":[20,300],"Orders":[300,30],"Order Items":[580,90],"Products":[860,20],"Sellers":[860,320]}, BW=200, RH=17, HH=28, MAX={"Orders":14};
+  const geo={};
+  for(const [name,[x,y]] of Object.entries(POS)){
+    const t=T.get(name), cols=[...t.columns].sort((a,b)=>(relCols.has(name+"|"+b.name)||b.key)-(relCols.has(name+"|"+a.name)||a.key)||(a.hidden-b.hidden));
+    const max=MAX[name]||9, shown=cols.slice(0,max), more=cols.length-shown.length, nm=name==="Orders"?MODEL.measures.length:0;
+    const h=HH+shown.length*RH+(more?RH:0)+(nm?RH+4:0)+8, g=svg.append("g").attr("class","mbox");
+    g.append("rect").attr("class","b").attr("x",x).attr("y",y).attr("width",BW).attr("height",h).attr("rx",8);
+    g.append("rect").attr("class","h").attr("x",x).attr("y",y).attr("width",BW).attr("height",HH).attr("rx",8);
+    g.append("rect").attr("class","h").attr("x",x).attr("y",y+HH-8).attr("width",BW).attr("height",8);
+    g.append("text").attr("class","t").attr("x",x+10).attr("y",y+18).text(name+(t.date?"  ·  date table":""));
+    geo[name]={x,y,h,rows:{}};
+    shown.forEach((c,i)=>{const cy=y+HH+6+i*RH+12;geo[name].rows[c.name]=cy-4;
+      g.append("text").attr("class","c"+(c.key||relCols.has(name+"|"+c.name)?" key":"")+(c.hidden?" hid":"")).attr("x",x+10).attr("y",cy).text(c.name+(c.key?"  (key)":"")).append("title").text(c.type);});
+    let yy=y+HH+6+shown.length*RH+12;
+    if(more){g.append("text").attr("class","c hid").attr("x",x+10).attr("y",yy).text(`+ ${more} more columns`);yy+=RH;}
+    if(nm)g.append("text").attr("class","m").attr("x",x+10).attr("y",yy+4).text(`Σ ${nm} measures`);
+    g.append("title").text(t.description);
+  }
+  const tri=(x,y,ang)=>svg.append("path").attr("d","M-5,-4 L4,0 L-5,4 z").attr("transform",`translate(${x},${y}) rotate(${ang})`).attr("fill",css("--ink-2"));
+  for(const r of MODEL.relationships){
+    const a=geo[r.fromTable], b=geo[r.toTable]; // a = many side, b = one side; filters flow b -> a
+    const ay=a.rows[r.fromColumn]??a.y+a.h/2, by=b.rows[r.toColumn]??b.y+b.h/2;
+    const right=b.x>a.x, ax=right?a.x+BW:a.x, bx=right?b.x:b.x+BW, mx=(ax+bx)/2;
+    svg.append("path").attr("d",`M${bx},${by} H${mx} V${ay} H${ax}`).attr("fill","none").attr("stroke",css("--ink-2")).attr("stroke-width",1.4);
+    const toA=right?180:0;                       // direction from the one side towards the many side, horizontally
+    tri((ax+mx)/2,ay,toA);
+    if(r.both)tri((bx+mx)/2,by,toA+180);
+    svg.append("text").attr("x",bx+(right?-12:6)).attr("y",by-5).style("font-family","var(--mono)").style("font-size","12px").style("font-weight",700).style("fill",css("--ink")).text("1");
+    svg.append("text").attr("x",ax+(right?4:-12)).attr("y",ay-5).style("font-family","var(--mono)").style("font-size","12px").style("font-weight",700).style("fill",css("--ink")).text("*");
+    if(r.both)svg.append("text").attr("x",mx).attr("y",Math.max(ay,by)+16).attr("text-anchor","middle").style("font-size","10.5px").style("font-weight",600).style("fill",css("--warn")).text("both ways");
+  }
+}
+
+function hl(dax){
+  return esc(dax).replace(/(&quot;[^&]*?&quot;)|('[^']+'\[[^\]]+\]|\b[A-Z][\w ]*?\[[^\]]+\])|(\[[^\]]+\])|\b([A-Z][A-Z.]+)(?=\s*\()|\b(VAR|RETURN|TRUE|FALSE|NOT)\b/g,(m,s,c,ms,f,k)=>
+    s?`<span class="st">${s}</span>`:c?`<span class="cl">${c}</span>`:ms?`<span class="ms">${ms}</span>`:`<span class="kw">${f||k}</span>`);
+}
+function measures(){
+  const fs=["All",...new Set(MODEL.measures.map(m=>m.folder))];
+  document.getElementById("folders").innerHTML=fs.map(f=>`<button aria-pressed="${f===folder}" data-f="${f}">${f}</button>`).join("");
+  document.querySelectorAll("#folders button").forEach(b=>b.onclick=()=>{folder=b.dataset.f;measures();});
+  document.getElementById("measures").innerHTML=MODEL.measures.filter(m=>folder==="All"||m.folder===folder).map(m=>
+    `<div class="meas"><div class="top"><span class="nm">${esc(m.name)}</span><span class="pill">${m.folder}</span><span class="pill">${esc(m.format)}</span></div><div class="d">${esc(m.description)}</div><pre class="dax">${hl(m.name+" =\n"+m.dax)}</pre></div>`).join("");
+}
+function pitfall(){
+  const p=R.pitfall;
+  document.getElementById("pit-sub").innerHTML=`In DAX, <code>BLANK() = FALSE()</code> is <b>true</b>. Orders that never arrived (shipped, canceled, unavailable) have no lateness value, so a filter written <code>Orders[is_late] = FALSE ()</code> quietly counts all <b>${f0(p.blank_orders)}</b> of them as on time. ${f0(p.blank_reviewed)} of them have reviews, averaging <b>${f2(p.blank_avg_review)}</b> stars. The strict operator <code>==</code> treats blank as blank.`;
+  document.getElementById("pit").innerHTML=[["Orders[is_late] = FALSE ()",p.on_time_with_equals,"Undelivered orders counted as on time"],["Orders[is_late] == FALSE ()",p.on_time_with_strict,"Matches the dbt mart; used in the model"]]
+    .map(([c,v,k],i)=>`<div class="tile"><code>${c}</code><div class="v num" style="color:${i?"var(--accent)":"var(--warn)"}">${f2(v)}</div><div class="k">Review if on time · ${k}</div></div>`).join("");
+}
+
+function page(n){
+  ["1","2"].forEach(i=>{document.getElementById("t"+i).setAttribute("aria-selected",String(i===n));document.getElementById("pg"+i).hidden=i!==n;});
+  document.getElementById("slicer").style.visibility=n==="1"?"visible":"hidden";
+  draw();
+}
+function draw(){
+  if(!document.getElementById("pg1").hidden){cards1();lateChart();stateChart();monthly();}
+  else{table();scatter();cards2();}
+}
+async function init(){
+  const src=document.getElementById("src");
+  try{
+    const [a,b]=await Promise.all([get("web/data/report.json"),get("web/data/model.json")]);
+    R=JSON.parse(a.t);MODEL=JSON.parse(b.t);
+    src.innerHTML=`<span class="dot ${a.k==="live"?"live":""}"></span>${a.k==="live"?"Live from":"Snapshot of"} <a href="https://github.com/${SOURCE.repo}" target="_blank" rel="noopener">github.com/${SOURCE.repo}</a> · ${f0(R.overall["Order Count"])} orders · ${MODEL.measures.length} measures · ${MODEL.tables.length} tables`;
+  }catch(e){src.textContent="Could not load the data.";return;}
+  const s=document.getElementById("cat");
+  s.innerHTML=`<option value="">All categories</option>`+[...R.categories].sort((a,b)=>a.category.localeCompare(b.category)).map(c=>`<option value="${esc(c.category)}">${esc(nice(c.category))}</option>`).join("");
+  s.onchange=()=>{cat=s.value;draw();};
+  document.getElementById("t1").onclick=()=>page("1");document.getElementById("t2").onclick=()=>page("2");
+  draw();model();measures();pitfall();
+  let w=innerWidth;addEventListener("resize",()=>{if(innerWidth!==w){w=innerWidth;draw();}});
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{draw();model();});
+  new MutationObserver(()=>{draw();model();}).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+}
+init();
+</script>

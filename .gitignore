@@ -1,0 +1,6 @@
+tools/.schemas/
+__pycache__/
+# Power BI Desktop writes these locally; they hold your cached data and settings, not the project
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+*.pbix

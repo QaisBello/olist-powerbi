@@ -1,0 +1,65 @@
+/// Products with English category names.
+table Products
+
+	column product_id
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: product_id
+
+	column category
+		dataType: string
+		summarizeBy: none
+		sourceColumn: category
+
+	column category_pt
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: category_pt
+
+	column weight_g
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: weight_g
+
+	column photos
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: photos
+
+	column volume_cm3
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: volume_cm3
+
+	partition Products = m
+		mode: import
+		source = ```
+				let
+				    Source = Csv.Document(
+				        Web.Contents(BaseUrl, [RelativePath = "dim_products.csv"]),
+				        [Delimiter = ",", Encoding = 65001, QuoteStyle = QuoteStyle.Csv]
+				    ),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    #"Changed Types" = Table.TransformColumnTypes(
+				        #"Promoted Headers",
+				        {
+				            {"product_id", type text},
+				            {"category", type text},
+				            {"category_pt", type text},
+				            {"weight_g", Int64.Type},
+				            {"photos", Int64.Type},
+				            {"volume_cm3", Int64.Type}
+				        },
+				        "en-US"
+				    ),
+				    #"Filtered Rows" = #"Changed Types",
+				    Result = #"Filtered Rows"
+				in
+				    Result
+				```
+
